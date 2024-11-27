@@ -91,8 +91,14 @@ def numeric() -> ColumnSelector:
 def temporal() -> ColumnSelector:
     return _dtype_selector(PySparkTypes.TEMPORAL.value)
 
+
 def date() -> ColumnSelector:
     return _dtype_selector(T.DateType)
+
+
+def time() -> ColumnSelector:
+    return _dtype_selector((T.TimestampType, T.TimestampNTZType))
+
 
 def interval() -> ColumnSelector:
     return _dtype_selector(PySparkTypes.INTERVAL.value)
