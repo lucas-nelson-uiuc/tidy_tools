@@ -29,25 +29,39 @@ class ColumnSelector:
 
     expression: Callable
 
-    def __or__(self, other):
+    def __or__(self, other) -> "ColumnSelector":
         if not isinstance(other, ColumnSelector):
             return NotImplemented
         return ColumnSelector(lambda col: self.expression(col) or other.expression(col))
+    
+    def __xor__(self, other) -> "ColumnSelector":
+        if not isinstance(other, ColumnSelector):
+            return NotImplemented
+        return ColumnSelector(
+            lambda col: self.expression(col) ^ other.expression(col)
+        )
 
-    def __and__(self, other):
+    def __and__(self, other) -> "ColumnSelector":
         if not isinstance(other, ColumnSelector):
             return NotImplemented
         return ColumnSelector(
             lambda col: self.expression(col) and other.expression(col)
         )
+    
+    def __sub__(self, other) -> "ColumnSelector":
+        if not isinstance(other, ColumnSelector):
+            return NotImplemented
+        return ColumnSelector(
+            lambda col: self.expression(col) and not other.expression(col)
+        )
 
-    def __ror__(self, other):
+    def __ror__(self, other) -> "ColumnSelector":
         return self.__or__(other)
 
-    def __rand__(self, other):
+    def __rand__(self, other) -> "ColumnSelector":
         return self.__and__(other)
 
-    def __invert__(self):
+    def __invert__(self) -> "ColumnSelector":
         return not self.expression
 
     def __call__(self, column: str) -> bool:
