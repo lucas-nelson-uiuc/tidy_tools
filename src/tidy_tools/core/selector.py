@@ -33,13 +33,11 @@ class ColumnSelector:
         if not isinstance(other, ColumnSelector):
             return NotImplemented
         return ColumnSelector(lambda col: self.expression(col) or other.expression(col))
-    
+
     def __xor__(self, other) -> "ColumnSelector":
         if not isinstance(other, ColumnSelector):
             return NotImplemented
-        return ColumnSelector(
-            lambda col: self.expression(col) ^ other.expression(col)
-        )
+        return ColumnSelector(lambda col: self.expression(col) ^ other.expression(col))
 
     def __and__(self, other) -> "ColumnSelector":
         if not isinstance(other, ColumnSelector):
@@ -47,7 +45,7 @@ class ColumnSelector:
         return ColumnSelector(
             lambda col: self.expression(col) and other.expression(col)
         )
-    
+
     def __sub__(self, other) -> "ColumnSelector":
         if not isinstance(other, ColumnSelector):
             return NotImplemented
@@ -75,31 +73,33 @@ def _name_selector(pattern: str, match_func: Callable):
     return ColumnSelector(expression=closure)
 
 
-def _dtype_selector(dtypes: tuple[T.DataType]):
+def _dtype_selector(dtype: T.DataType | tuple[T.DataType]):
     def closure(sf: T.StructField) -> bool:
-        return isinstance(sf.dataType, dtypes.value)
+        return isinstance(sf.dataType, dtype)
 
     return ColumnSelector(expression=closure)
 
 
 def string() -> ColumnSelector:
-    return _dtype_selector(PySparkTypes.STRING)
+    return _dtype_selector(PySparkTypes.STRING.value)
 
 
 def numeric() -> ColumnSelector:
-    return _dtype_selector(PySparkTypes.NUMERIC)
+    return _dtype_selector(PySparkTypes.NUMERIC.value)
 
 
 def temporal() -> ColumnSelector:
-    return _dtype_selector(PySparkTypes.TEMPORAL)
+    return _dtype_selector(PySparkTypes.TEMPORAL.value)
 
+def date() -> ColumnSelector:
+    return _dtype_selector(T.DateType)
 
 def interval() -> ColumnSelector:
-    return _dtype_selector(PySparkTypes.INTERVAL)
+    return _dtype_selector(PySparkTypes.INTERVAL.value)
 
 
 def complex() -> ColumnSelector:
-    return _dtype_selector(PySparkTypes.COMPLEX)
+    return _dtype_selector(PySparkTypes.COMPLEX.value)
 
 
 def required() -> ColumnSelector:
