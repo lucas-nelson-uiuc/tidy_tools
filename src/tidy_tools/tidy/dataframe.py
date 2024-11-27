@@ -4,7 +4,7 @@ import warnings
 
 import functools
 
-from attrs import define
+from attrs import define, field
 from loguru import logger
 
 from pyspark.sql import DataFrame
@@ -15,7 +15,7 @@ from tidy_tools.core.selector import ColumnSelector
 @define
 class TidyDataFrame:
     _data: str
-    config: dict
+    config: dict = field(factory=dict)
 
     def __attrs_post_init__(self):
         self.config.setdefault("register_tidy", True)
