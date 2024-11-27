@@ -1,11 +1,10 @@
 from typing import Callable
 from enum import Enum
 import re
-import operator
 
-from attrs import define, field
+from attrs import define
 
-from pyspark.sql import Column, types as T
+from pyspark.sql import types as T
 
 
 class PySparkTypes(Enum):
@@ -27,23 +26,29 @@ class PySparkTypes(Enum):
 @define
 class ColumnSelector:
     """Define generic class for selecting columns based on expressions."""
+
     expression: Callable
 
     def __or__(self, other):
         if not isinstance(other, ColumnSelector):
             return NotImplemented
         return ColumnSelector(lambda col: self.expression(col) or other.expression(col))
-    
+
     def __and__(self, other):
         if not isinstance(other, ColumnSelector):
             return NotImplemented
-        return ColumnSelector(lambda col: self.expression(col) and other.expression(col))
-    
+        return ColumnSelector(
+            lambda col: self.expression(col) and other.expression(col)
+        )
+
     def __ror__(self, other):
         return self.__or__(other)
-    
+
     def __rand__(self, other):
         return self.__and__(other)
+
+    def __invert__(self):
+        return not self.expression
 
     def __call__(self, column: str) -> bool:
         return self.expression(column)
@@ -63,27 +68,27 @@ def _dtype_selector(dtypes: tuple[T.DataType]):
     return ColumnSelector(expression=closure)
 
 
-def string():
+def string() -> ColumnSelector:
     return _dtype_selector(PySparkTypes.STRING)
 
 
-def numeric():
+def numeric() -> ColumnSelector:
     return _dtype_selector(PySparkTypes.NUMERIC)
 
 
-def temporal():
+def temporal() -> ColumnSelector:
     return _dtype_selector(PySparkTypes.TEMPORAL)
 
 
-def interval():
+def interval() -> ColumnSelector:
     return _dtype_selector(PySparkTypes.INTERVAL)
 
 
-def complex():
+def complex() -> ColumnSelector:
     return _dtype_selector(PySparkTypes.COMPLEX)
 
 
-def required():
+def required() -> ColumnSelector:
     def closure(sf: T.StructField) -> bool:
         return not sf.nullable
 

@@ -1,12 +1,14 @@
 from typing import Callable
 import inspect
+import warnings
 
-from attrs import define, field
+import functools
+
+from attrs import define
 from loguru import logger
 
 from pyspark.sql import DataFrame
 
-from tidy_tools.core import filters as tidy_filter
 from tidy_tools.core.selector import ColumnSelector
 
 
@@ -17,12 +19,12 @@ class TidyDataFrame:
 
     def __attrs_post_init__(self):
         self.config.setdefault("register_tidy", True)
-        if self.config.get(
-            "register_tidy"
-        ):  # TODO: add feature to selectively register modules
-            self.__class__.register(tidy_filter)
+        if self.config.get("register_tidy"):
+            # TODO: add feature to selectively register modules
+            # self.__class__.register(tidy_filter)
             # self.__class__.register(tidy_select)
             # self.__class__.register(tidy_summarize)
+            pass
 
     @classmethod
     def register(cls, module):
@@ -53,7 +55,18 @@ class TidyDataFrame:
                 )
             ]
         )
-        self._data = self._data.select(*selected)
+        if len(selected) > 1:
+            self._data = self._data.select(*selected)
+        else:
+            warnings.warn("No columns matched the selector(s).")
+        return self
+    
+    def pipe(self, *funcs: Callable):
+        self._data = functools.reduce(
+            lambda init, func: init.transform(func),
+            funcs,
+            self._data
+        )
         return self
 
     def __getattr__(self, attr):
