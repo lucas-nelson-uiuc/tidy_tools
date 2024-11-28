@@ -55,10 +55,9 @@ class TidyDataFrame:
                 )
             ]
         )
-        if len(selected) > 1:
-            self._data = self._data.select(*selected)
-        else:
+        if len(selected) < 1:
             warnings.warn("No columns matched the selector(s).")
+        self._data = self._data.select(*selected)
         return self
 
     def pipe(self, *funcs: Callable):
