@@ -72,7 +72,7 @@ class TestColumnSelector:
 
     def test_temporal(self, sample_data):
         selected_columns = sample_data.select(cs.temporal()).columns
-        expected_columns = ["seasons"]
+        expected_columns = ["birth_date", "original_air_date"]
         assert set(selected_columns).difference(expected_columns) == set()
 
     def test_date(self, sample_data):
