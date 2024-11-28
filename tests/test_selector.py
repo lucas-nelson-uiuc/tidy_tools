@@ -120,7 +120,7 @@ class TestColumnSelector:
         ]
         assert set(selected_columns).difference(expected_columns) == set()
         
-        selected_columns = sample_data.select(cs.matches("*")).columns
+        selected_columns = sample_data.select(cs.matches(".*")).columns
         expected_columns = [
             "name",
             "birth_date",
