@@ -17,5 +17,7 @@ jobs:
       - name: Install Dependencies
         run: |
             python -m pip install --upgrade pip
-            python -m pip install --upgrade pyspark attrs pytest
-            pytest tests
+            pip install --upgrade pyspark attrs pytest
+            pip install --editable .
+      - name: Run testing suite
+        run: python -m pytest tests
