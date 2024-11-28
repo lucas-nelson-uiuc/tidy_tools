@@ -58,7 +58,6 @@ def sample_data(spark_fixture):
 
 
 class TestColumnSelector:
-
     def test_string(self, sample_data):
         selected_schema = sample_data.select(cs.string())
         assert selected_schema.columns == ["name", "instrument"]
@@ -85,7 +84,12 @@ class TestColumnSelector:
 
     def test_required(self, sample_data):
         selected_schema = sample_data.select(cs.required())
-        assert selected_schema.columns == ["name", "birth_date", "original_air_date", "seasons"]
+        assert selected_schema.columns == [
+            "name",
+            "birth_date",
+            "original_air_date",
+            "seasons",
+        ]
 
     def test_matches(self, sample_data):
         selected_schema = sample_data.select(cs.matches("_"))
@@ -93,7 +97,13 @@ class TestColumnSelector:
         selected_schema = sample_data.select(cs.matches("date$"))
         assert selected_schema.columns == ["birth_date", "original_air_date"]
         selected_schema = sample_data.select(cs.matches("*"))
-        assert selected_schema.columns == ["name", "birth_date", "original_air_date", "seasons", "instrument"]
+        assert selected_schema.columns == [
+            "name",
+            "birth_date",
+            "original_air_date",
+            "seasons",
+            "instrument",
+        ]
 
     def test_contains(self, sample_data):
         selected_schema = sample_data.select(cs.contains("_"))
