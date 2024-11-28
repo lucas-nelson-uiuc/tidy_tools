@@ -4,6 +4,7 @@ import datetime
 from pyspark.sql import SparkSession, types as T
 
 from tidy_tools.core import selector as cs
+from tidy_tools.tidy import TidyDataFrame
 
 
 @pytest.fixture
@@ -14,7 +15,7 @@ def spark_fixture():
 
 @pytest.fixture
 def sample_data(spark_fixture):
-    yield spark_fixture.createDataFrame(
+    data = spark_fixture.createDataFrame(
         [
             {
                 "name": "Homer",
@@ -55,6 +56,7 @@ def sample_data(spark_fixture):
             ]
         ),
     )
+    yield TidyDataFrame(data)
 
 
 class TestColumnSelector:
