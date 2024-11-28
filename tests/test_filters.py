@@ -1,5 +1,3 @@
-from pyspark.testing import assertDataFrameEqual
-
 from tidy_tools.core.filters import filter_nulls, filter_regex, filter_elements
 
 
