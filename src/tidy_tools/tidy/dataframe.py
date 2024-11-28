@@ -60,12 +60,10 @@ class TidyDataFrame:
         else:
             warnings.warn("No columns matched the selector(s).")
         return self
-    
+
     def pipe(self, *funcs: Callable):
         self._data = functools.reduce(
-            lambda init, func: init.transform(func),
-            funcs,
-            self._data
+            lambda init, func: init.transform(func), funcs, self._data
         )
         return self
 
@@ -103,7 +101,7 @@ class TidyDataFrame:
             return wrapper
         ### TODO: validate if this logging operation is legit
         ### TODO: mark as unstable (sometimes get notebook dependencies caught in this; generates long message)
-        self._logger(operation=attr, message="method does not exist", level="error")
+        # self._logger(operation=attr, message="method does not exist", level="error")
         raise AttributeError(
             f"'{type(self._data).__name__}' object has no attribute '{attr}'"
         )
