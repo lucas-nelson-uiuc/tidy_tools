@@ -61,6 +61,7 @@ class TidyDataFrame:
         return self
 
     def pipe(self, *funcs: Callable):
+        """Chain multiple custom transformation functions to be applied iteratively."""
         self._data = functools.reduce(
             lambda init, func: init.transform(func), funcs, self._data
         )
