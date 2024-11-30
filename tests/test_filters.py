@@ -1,18 +1,21 @@
 # TODO: enable pyspark.testing at some point
 # from pyspark.testing import assertDataFrameEqual
 from tidy_tools.core.filters import filter_nulls
+from tidy_tools.frame import TidyDataFrame
 
 
 class TestFilters:
     def test_filter_nulls(self, eits_data):
+        tidy_data = TidyDataFrame(eits_data)
         eits_data.filter_nulls = filter_nulls
+        tidy_data.filter_nulls = filter_nulls
 
         # test `filter_nulls` is equivalent to `DataFrame.na.drop`
-        assert eits_data.na.drop(how="any").count() == eits_data.filter_nulls().count()
+        assert eits_data.na.drop(how="any").count() == tidy_data.filter_nulls().count()
 
         assert (
             eits_data.na.drop(how="all").count()
-            == eits_data.filter_nulls(strict=True).count()
+            == tidy_data.filter_nulls(strict=True).count()
         )
 
         columns = [
@@ -26,19 +29,23 @@ class TestFilters:
         ]
         assert (
             eits_data.na.drop(subset=[columns]).count()
-            == eits_data.filter_nulls(*columns).count()
+            == tidy_data.filter_nulls(*columns).count()
         )
 
         columns = ["formats", "producer", "ceritifed_gold", "comments"]
         assert (
             eits_data.na.drop(subset=[columns]).count()
-            == eits_data.filter_nulls(*columns).count()
+            == tidy_data.filter_nulls(*columns).count()
         )
 
     def test_filter_regex(self, eits_data):
-        # eits_data.filter_regex = filter_regex
+        # tidy_data = TidyDataFrame(eits_data)
+        # eits_data.filter_nulls = filter_nulls
+        # tidy_data.filter_nulls = filter_nulls
         assert True
 
     def test_filter_elements(self, eits_data):
-        # eits_data.filter_elements = filter_elements
+        # tidy_data = TidyDataFrame(eits_data)
+        # eits_data.filter_nulls = filter_nulls
+        # tidy_data.filter_nulls = filter_nulls
         assert True

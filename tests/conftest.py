@@ -159,4 +159,5 @@ def eits_data(spark_fixture):
             ]
         ),
     )
-    yield TidyDataFrame(data)
+    # TODO: yield data, TidyDataFrame(data)
+    yield data
