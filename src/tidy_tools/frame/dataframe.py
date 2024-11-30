@@ -1,14 +1,12 @@
-from typing import Callable
+import functools
 import inspect
 import warnings
+from typing import Callable
 
-import functools
-
-from attrs import define, field
+from attrs import define
+from attrs import field
 from loguru import logger
-
 from pyspark.sql import DataFrame
-
 from tidy_tools.core.selector import ColumnSelector
 
 

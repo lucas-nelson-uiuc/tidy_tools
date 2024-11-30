@@ -1,6 +1,6 @@
 from attrs import define
-
-from tidy_tools.tidy._types import Functions, Objects
+from tidy_tools.frame._types import Functions
+from tidy_tools.frame._types import Objects
 
 
 @define

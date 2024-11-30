@@ -1,9 +1,9 @@
 import datetime
+
 import pytest
-
-from pyspark.sql import SparkSession, types as T
-
-from tidy_tools.tidy import TidyDataFrame
+from pyspark.sql import SparkSession
+from pyspark.sql import types as T
+from tidy_tools.frame import TidyDataFrame
 
 
 @pytest.fixture
