@@ -8,8 +8,8 @@ from loguru import logger
 from pyspark.sql import types as T
 
 
-logger.level("ENTER", color="<green>")
-logger.level("EXIT", color="<red>")
+logger.level("ENTER", no=98, color="<green>")
+logger.level("EXIT", no=99, color="<red>")
 
 
 @define
@@ -22,7 +22,7 @@ class TidySnapshot:
 
 
 @contextmanager
-def tidy_context():
+def tidycontext():
     """Define context manager for handling tidy operations."""
     context = {"operation_log": [], "snapshots": []}
     try:
