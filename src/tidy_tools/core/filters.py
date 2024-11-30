@@ -2,10 +2,9 @@ import re
 import warnings
 
 from pyspark.sql import DataFrame
-
-from tidy_tools.core._types import ColumnReference
-from tidy_tools.core._constructor import construct_query
 from tidy_tools.core import _predicate
+from tidy_tools.core._constructor import construct_query
+from tidy_tools.core._types import ColumnReference
 
 
 def filter_nulls(
@@ -15,6 +14,8 @@ def filter_nulls(
     invert: bool = True,
 ) -> DataFrame:
     """Remove nulls from a DataFrame across any or all column(s)"""
+    if not columns:
+        columns = self.columns
     query = construct_query(
         *columns, predicate=_predicate.is_null, strict=strict, invert=invert
     )
@@ -29,6 +30,8 @@ def filter_regex(
     invert: bool = False,
 ) -> DataFrame:
     """Keep all observations across any or all columns that match the provided regular expression(s)."""
+    if not columns:
+        columns = self.columns
     assert all(isinstance(r, str) for r in regex)
     assert all(re.compile(r) for r in regex)
     query = construct_query(
@@ -50,6 +53,8 @@ def filter_elements(
     invert: bool = False,
 ) -> DataFrame:
     """Keep all observations across any or all columns that exist within the provided bounds."""
+    if not columns:
+        columns = self.columns
     if in_range:
         assert (
             len(elements) == 2

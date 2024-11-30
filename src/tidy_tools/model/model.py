@@ -16,6 +16,7 @@ from pyspark.sql import Column
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
+from tidy_tools.model.error import TidyError
 
 logger.remove()
 logger.add(sys.stderr, format="{time:HH:mm:ss} | <level>{level:<8}</level> | {message}")
@@ -44,16 +45,6 @@ def is_optional(field: attrs.Attribute) -> bool:
     union_type_hint = typing.get_origin(field.type) is typing.Union
     accepts_none = type(None) in typing.get_args(field.type)
     return union_type_hint and accepts_none
-
-
-@define
-class TidyError:
-    column: str
-    validation: Callable
-    data: DataFrame
-
-    def __repr__(self):
-        return f"TidyError(column={self.column}, validation={self.validation(self.column)}, data={self.data.count():,} rows)"
 
 
 @define
@@ -88,8 +79,6 @@ class TidyDataModel:
         cls,
         *source: Iterable[str],
         read_options: dict = dict(),
-        preprocess: Callable = None,
-        postprocess: Callable = None,
         union_func: Callable = DataFrame.unionByName,
     ) -> DataFrame:
         cls.document("_source", source)
@@ -97,7 +86,12 @@ class TidyDataModel:
         return functools.reduce(union_func, map(read_func, source))
 
     @classmethod
-    def transform(cls, data: DataFrame):
+    def transform(
+        cls,
+        data: DataFrame,
+        preprocess: Callable = None,
+        postprocess: Callable = None,
+    ):
         queue = deque()
 
         for field in attrs.fields(cls):
@@ -140,9 +134,21 @@ class TidyDataModel:
             queue.append(column)
             cls.document("_transformations", {field.name: column})
 
-        return data.withColumns(
+        if preprocess:
+            if hasattr(cls, "__tidy_preprocess__"):
+                logger.warn("Preprocess function already defined!")
+            data = preprocess(data)
+
+        data = data.withColumns(
             {field.name: column for field, column in zip(attrs.fields(cls), queue)}
         )
+
+        if postprocess:
+            if hasattr(cls, "__tidy_postprocess__"):
+                logger.warn("Postprocess function already defined!")
+            data = postprocess(data)
+
+        return data
 
     @classmethod
     def _validate(cls, validator) -> Column:

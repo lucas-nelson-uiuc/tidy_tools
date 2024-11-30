@@ -1,9 +1,9 @@
-from typing import Callable
-from enum import Enum
+import inspect
 import re
+from enum import Enum
+from typing import Callable
 
 from attrs import define
-
 from pyspark.sql import types as T
 
 
@@ -65,9 +65,27 @@ class ColumnSelector:
     def __call__(self, column: str) -> bool:
         return self.expression(column)
 
+    def __repr__(self) -> str:
+        """Generate a string representation using the callable's docstring."""
+        try:
+            doc = inspect.getdoc(self.expression)
+            if doc:
+                return f"ColumnSelector(expression={doc})"
+            return "ColumnSelector(expression=<no docstring provided>)"
+        except Exception:
+            return "ColumnSelector(expression=<uninspectable callable>)"
+
+
+# def _create_closure(docstring: str, func: Callable) -> Callable:
+#     def closure(*args, **kwargs):
+#         closure.__doc__ = docstring
+#         return func(*args, **kwargs)
+#     return closure
+
 
 def _name_selector(pattern: str, match_func: Callable):
     def closure(sf: T.StructField) -> bool:
+        closure.__doc__ = f"Matches '{pattern}'"
         return match_func(sf.name, pattern)
 
     return ColumnSelector(expression=closure)
@@ -75,6 +93,7 @@ def _name_selector(pattern: str, match_func: Callable):
 
 def _dtype_selector(dtype: T.DataType | tuple[T.DataType]):
     def closure(sf: T.StructField) -> bool:
+        closure.__doc__ = f"Data type {dtype}"
         return isinstance(sf.dataType, dtype)
 
     return ColumnSelector(expression=closure)
@@ -110,6 +129,7 @@ def complex() -> ColumnSelector:
 
 def required() -> ColumnSelector:
     def closure(sf: T.StructField) -> bool:
+        """Required fields"""
         return not sf.nullable
 
     return ColumnSelector(expression=closure)

@@ -1,8 +1,9 @@
-from typing import Callable, Iterable
 import functools
+from typing import Callable
+from typing import Iterable
 
-from pyspark.sql import functions as F, Column
-
+from pyspark.sql import Column
+from pyspark.sql import functions as F
 from tidy_tools.core._types import ColumnReference
 
 
@@ -17,7 +18,7 @@ def _reference_column(func: Callable):
 
 
 @_reference_column
-def is_null(column: ColumnReference, values: tuple[str] = ("\s*",)) -> Column:
+def is_null(column: ColumnReference, values: tuple[str] = (r"\s*",)) -> Column:
     """Predicate for identifying null values."""
     return column.isNull() | column.rlike(f"^({'|'.join(values)})$")
 
