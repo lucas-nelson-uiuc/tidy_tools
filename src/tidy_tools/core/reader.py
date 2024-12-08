@@ -1,7 +1,6 @@
 import functools
 from pathlib import Path
 from typing import Callable
-from typing import Optional
 
 from pyspark.errors import PySparkException
 from pyspark.sql import DataFrame
@@ -10,9 +9,9 @@ from pyspark.sql import DataFrame
 def read(
     *source: str | Path,
     read_func: Callable,
-    merge_func: Optional[Callable] = DataFrame.unionByName,
+    merge: bool | Callable = DataFrame.unionByName,
     **read_options: dict,
-) -> DataFrame:
+) -> dict[DataFrame] | DataFrame:
     """
     Load data from source(s) as a PySpark DataFrame.
 
@@ -29,6 +28,8 @@ def read(
     """
     read_func = functools.partial(read_func, **read_options)
     try:
-        return functools.reduce(merge_func, map(read_func, source))
+        if merge:
+            return functools.reduce(merge, map(read_func, source))
+        return {source: read_func(source)}
     except PySparkException as e:
         raise e

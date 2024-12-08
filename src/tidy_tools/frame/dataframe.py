@@ -23,7 +23,6 @@ class TidyDataFrame:
         self.config.setdefault("name", self.__class__.__name__)
         self.config.setdefault("count", True)
         self.config.setdefault("display", True)
-        self.config.setdefault("verbose", False)
         self.config.setdefault("register_tidy", True)
 
     def __repr__(self):
@@ -176,9 +175,7 @@ class TidyDataFrame:
     @_record(message="calling pipe operator!!!")
     def pipe(self, *funcs: Callable):
         """Chain multiple custom transformation functions to be applied iteratively."""
-        result = functools.reduce(
-            lambda init, func: init.transform(func), funcs, self._data
-        )
+        result = functools.reduce(lambda init, func: init.transform(func), funcs, self)
         return TidyDataFrame(result, config=self.config, context=self.context)
 
     def __getattr__(self, attr):
@@ -204,7 +201,7 @@ class TidyDataFrame:
             def wrapper(*args, **kwargs):
                 result = getattr(self._data, attr)(*args, **kwargs)
                 if isinstance(result, DataFrame):
-                    self._logger(
+                    self._log(
                         operation=attr, message="not yet implemented", level="warning"
                     )
                     return TidyDataFrame(
@@ -216,7 +213,7 @@ class TidyDataFrame:
             return wrapper
         ### TODO: validate if this logging operation is legit
         ### TODO: mark as unstable (sometimes get notebook dependencies caught in this; generates long message)
-        # self._logger(operation=attr, message="method does not exist", level="error")
+        # self._log(operation=attr, message="method does not exist", level="error")
         raise AttributeError(
             f"'{type(self._data).__name__}' object has no attribute '{attr}'"
         )
