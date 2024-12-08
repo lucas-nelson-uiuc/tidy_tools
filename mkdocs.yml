@@ -1,4 +1,53 @@
-site_name: My site
-site_url: https://mydomain.org/mysite
+# Project information
+site_name: Tidy Tools User Guide
+site_url: https://lucas-nelson-uiuc.github.io/tidy_tools/
+repo_url: https://github.com/lucas-nelson-uiuc/tidy_tools
+repo_name: tidy_tools
+
 theme:
   name: material
+  palette:
+  # Palette toggle for light mode
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    toggle:
+      icon: material/brightness-7
+      name: Switch to dark mode
+  # Palette toggle for dark mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    toggle:
+      icon: material/brightness-4
+      name: Switch to light mode
+  logo: _assets/logo_small.png
+  features:
+    - navigation.tracking
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.footer
+    - navigation.indexes
+    - content.tabs.link
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+
+nav:
+  - User Guide:
+    - index.md
+    - user-guide/getting-started.md
+    - user-guide/installation.md
+    - Concepts:
+      - user-guide/concepts/declarative.md
+    - Modules:
+      - user-guide/modules/modules.md
+      - Core:
+        - user-guide/modules/core/api.md
+      - Models:
+        - user-guide/modules/models/api.md
+  - Development:
+    - development/contribution.md
+
+plugins:
+  - search
