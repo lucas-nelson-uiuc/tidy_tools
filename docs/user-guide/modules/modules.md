@@ -1,4 +1,4 @@
-# Tidy Tools Modules
+# Three Packages in One
 
 Tidy Tools is a collection of three modules:
 - core: packages recipes convenient for manipulating data
