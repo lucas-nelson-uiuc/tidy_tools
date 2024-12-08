@@ -1,5 +1,4 @@
 import re
-import warnings
 
 from pyspark.sql import DataFrame
 from tidy_tools.core import _predicate
@@ -57,12 +56,12 @@ def filter_elements(
         columns = self.columns
     if in_range:
         assert (
-            len(elements) == 2
-        ), "If specifying a range, there must only be two elements: [<lower bound>, <upper bound>]"
+            len(elements) >= 2
+        ), "If specifying a range, there must be at least two elements: [<lower bound>, ..., <upper bound>]"
         if isinstance(elements, dict):
             elements = elements.values()
-        if elements != sorted(elements):
-            warnings.warn("Elements were sorted by default.")
+        elements = sorted(elements)
+        elements = list(elements[0], elements[-1])
 
     query = construct_query(
         *columns,
