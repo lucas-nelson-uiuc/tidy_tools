@@ -9,7 +9,7 @@ from pyspark.sql import DataFrame
 def read(
     *source: str | Path,
     read_func: Callable,
-    merge: bool | Callable = DataFrame.unionByName,
+    merge_func: bool | Callable = DataFrame.unionByName,
     **read_options: dict,
 ) -> dict[DataFrame] | DataFrame:
     """
@@ -28,8 +28,6 @@ def read(
     """
     read_func = functools.partial(read_func, **read_options)
     try:
-        if merge:
-            return functools.reduce(merge, map(read_func, source))
-        return {source: read_func(source)}
+        return functools.reduce(merge_func, map(read_func, source))
     except PySparkException as e:
         raise e

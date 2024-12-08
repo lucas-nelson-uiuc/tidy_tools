@@ -1,80 +1,118 @@
 import functools
-import inspect
+from pathlib import Path
 from typing import Callable
 from typing import Optional
 
+import attrs
 from attrs import define
 from attrs import field
 from attrs import validators
 from loguru import logger
+from pyspark.errors import PySparkException
 from pyspark.sql import DataFrame
 from pyspark.sql import GroupedData
+from tidy_tools.core import reader
 from tidy_tools.core.selector import ColumnSelector
-from tidy_tools.frame.context import TidySnapshot
+from tidy_tools.frame.context import TidyContext
+from tidy_tools.frame.logger import TidyLogHandler
 
 
 @define
 class TidyDataFrame:
+    """Enable tidy operations on a PySpark DataFrame. Context is a dictionary acting as a log."""
+
     _data: DataFrame = field(validator=validators.instance_of((DataFrame, GroupedData)))
-    config: dict = field(factory=dict)
-    context: Optional[dict] = field(default=None)
+    _context: Optional[dict] = field(factory=TidyContext)
 
     def __attrs_post_init__(self):
-        self.config.setdefault("name", self.__class__.__name__)
-        self.config.setdefault("count", True)
-        self.config.setdefault("display", True)
-        self.config.setdefault("register_tidy", True)
+        if self._context.log_handlers:
+            handlers = [
+                attrs.asdict(handler)
+                if isinstance(handler, TidyLogHandler)
+                else handler
+                for handler in self._context.log_handlers
+            ]
+            logger.configure(handlers=handlers)
 
     def __repr__(self):
-        return f"{self.config.get('name')} [{self.count():,} rows x {len(self.columns)} cols]"
+        return (
+            f"{self._context.name} [{self.count():,} rows x {len(self.columns)} cols]"
+        )
 
-    @classmethod
-    def register(cls, module):
-        """Register external functions as methods of TidyDataFrame."""
-        for name, func in inspect.getmembers(module, inspect.isfunction):
-            setattr(cls, name, func)
+    def _repr_html_(self):
+        return self.__repr__()
+
+    ## @classmethod
+    # def register(cls, module):
+    #     """Register external functions as methods of TidyDataFrame."""
+    #     for name, func in inspect.getmembers(module, inspect.isfunction):
+    #         setattr(cls, name, func)
 
     def _snapshot(self, operation: str, message: str, dimensions: tuple[int, int]):
         """Captures a snapshot of the DataFrame"""
-        snapshot = TidySnapshot(
-            operation=operation,
-            message=message,
-            schema=self._data.schema,
-            dimensions=dimensions,
-        )
-        if self.context is not None:
-            self.context["snapshots"].append(snapshot)
+        # snapshot = TidySnapshot(
+        #     operation=operation,
+        #     message=message,
+        #     schema=self._data.schema,
+        #     dimensions=dimensions,
+        # )
+        # self._context.log.append(snapshot)
+        pass
 
     def _log(
         self,
         operation: str = "comment",
         message: str = "no message provided",
-        level: str = "info",
+        level: str = "success",
     ) -> None:
         getattr(logger, level)(f"#> {operation:<12}: {message}")
         return self
 
-    def _record(message: str) -> None:
+    def _record(message: str, alias: Optional[str] = None) -> None:
         def decorator(func: Callable):
             @functools.wraps(func)
             def wrapper(self, *args, **kwargs):
                 if hasattr(self, func.__name__):
+                    # generate result of calling method on data
                     result = func(self, *args, **kwargs)
-                    if self.context:
-                        self._snapshot(
-                            operation=func.__name__,
-                            message=eval(f"f'{message}'"),
-                            dimensions=(self.count(), len(self._data.columns)),
-                        )
+
+                    # log message to logging handler(s)
+                    description = kwargs.get("description", "")
+                    # if self._context.log is not None:
+                    #     self._snapshot(
+                    #         operation=alias or func.__name__,
+                    #         message = eval(f"f'{message} ({description})'").strip().replace(" ()", ""),
+                    #         dimensions=(self.count(), len(self._data.columns)),
+                    #     )
                     self._log(
-                        operation=func.__name__,
-                        message=eval(f"f'{message}'"),
+                        operation=alias or func.__name__,
+                        # message=eval(f"f'{message}'") + f" - {kwargs.get('description')}",
+                        message=eval(f"f'{message} ({description})'")
+                        .strip()
+                        .replace(" ()", ""),
                     )
                 return result
 
             return wrapper
 
         return decorator
+
+    @classmethod
+    def from_source(
+        cls,
+        *source: str | Path | DataFrame,
+        context: Optional[TidyContext] = None,
+        read_func: Optional[Callable] = None,
+        **read_options: dict,
+    ) -> "TidyDataFrame":
+        try:
+            read_func = functools.partial(read_func, **read_options)
+            data = reader.read(source, read_func=read_func)
+            if context:
+                return TidyDataFrame(data, context)
+            return TidyDataFrame(data)
+        except PySparkException as e:
+            raise e
 
     @property
     def columns(self):
@@ -101,7 +139,7 @@ class TidyDataFrame:
         logger.info(">> exit: TidyDataFrame context ending.")
         return self._data
 
-    def display(self, limit: int = 10):
+    def display(self, limit: Optional[int] = None):
         """
         Control execution of display method
 
@@ -112,36 +150,50 @@ class TidyDataFrame:
         to toggling the `.count()` method, users can temporarily disable a DataFrame's
         ability to display to the console by passing `toggle_display = True`.
         """
-        if not self.config.get("display"):
+        if not self._context.display:
             self._log(
                 operation="display", message="display is toggled off", level="warning"
             )
         else:
-            self._data.limit(limit).display()
+            self._data.limit(limit or self._context.limit).display()
         return self
 
-    def show(self, limit: int = 10):
-        if not self.config.get("display"):
+    def show(self, limit: Optional[int] = None):
+        """
+        Control execution of display method
+
+        This method masks the `pyspark.sql.DataFrame.display` method. This method does not
+        mask the native PySpark display function.
+
+        Often, the `.display()` method will need to be disabled for logging purposes. Similar
+        to toggling the `.count()` method, users can temporarily disable a DataFrame's
+        ability to display to the console by passing `toggle_display = True`.
+        """
+        if not self._context.display:
             self._log(
-                operation="show", message="display is toggled off", level="warning"
+                operation="display", message="display is toggled off", level="warning"
             )
         else:
-            self._data.limit(limit).show()
+            self._data.limit(limit or self._context.limit).show()
         return self
 
     def count(self, result: Optional[DataFrame] = None) -> int:
         """Retrieve number of rows in DataFrame."""
-        if not self.config.get("count"):
+        if not self._context.count:
             return 0
-        if not self.context["snapshots"]:
-            return self._data.count()
+        # if not self._context.log:
+        #     return self._data.count()
         if result:
             return result._data.count()
-        return self.context["snapshots"][-1].dimensions[0]
+        return self._data.count()
 
     @_record(message="selected {len(result._data.columns)} columns")
     def select(
-        self, *selectors: ColumnSelector, strict: bool = True, invert: bool = False
+        self,
+        *selectors: ColumnSelector,
+        strict: bool = True,
+        invert: bool = False,
+        description: Optional[str] = None,
     ):
         compare_operator = all if strict else any
         selected = set(
@@ -157,26 +209,39 @@ class TidyDataFrame:
             result = self._data.drop(*selected)
         else:
             result = self._data.select(*selected)
-        return TidyDataFrame(result, config=self.config, context=self.context)
+        return TidyDataFrame(result, self._context)
 
-    def drop(self, *selectors: ColumnSelector, strict: bool = True) -> "TidyDataFrame":
+    def drop(
+        self,
+        *selectors: ColumnSelector,
+        strict: bool = True,
+        description: Optional[str] = None,
+    ) -> "TidyDataFrame":
         return self.select(*selectors, strict=strict, invert=True)
 
     @_record(message="removed {self.count() - self.count(result):,} rows")
-    def filter(self, condition):
+    def filter(self, condition, description: Optional[str] = None):
         result = self._data.filter(condition)
-        return TidyDataFrame(result, config=self.config, context=self.context)
+        return TidyDataFrame(result, self._context)
 
-    @_record(message='added column {args[0] if args else kwargs.get("colName")}')
-    def withColumn(self, colName, col):
+    @_record(
+        message='added column {args[0] if args else kwargs.get("colName")}',
+        alias="mutate",
+    )
+    def withColumn(self, colName, col, description: Optional[str] = None):
         result = self._data.withColumn(colName, col)
-        return TidyDataFrame(result, config=self.config, context=self.context)
+        return TidyDataFrame(result, self._context)
 
-    @_record(message="calling pipe operator!!!")
+    def transform(self, func: Callable, *args, **kwargs):
+        """Concise syntax for chaining custom transformations together."""
+        result = func(self, *args, **kwargs)
+        return TidyDataFrame(result._data, self._context)
+
     def pipe(self, *funcs: Callable):
         """Chain multiple custom transformation functions to be applied iteratively."""
         result = functools.reduce(lambda init, func: init.transform(func), funcs, self)
-        return TidyDataFrame(result, config=self.config, context=self.context)
+
+        return TidyDataFrame(result._data, self._context)
 
     def __getattr__(self, attr):
         """
@@ -204,9 +269,7 @@ class TidyDataFrame:
                     self._log(
                         operation=attr, message="not yet implemented", level="warning"
                     )
-                    return TidyDataFrame(
-                        result, config=self.config, context=self.context
-                    )
+                    return TidyDataFrame(result, self._context)
                 else:
                     return self
 
