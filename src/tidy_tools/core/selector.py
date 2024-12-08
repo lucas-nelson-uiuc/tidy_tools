@@ -76,13 +76,6 @@ class ColumnSelector:
             return "ColumnSelector(expression=<uninspectable callable>)"
 
 
-# def _create_closure(docstring: str, func: Callable) -> Callable:
-#     def closure(*args, **kwargs):
-#         closure.__doc__ = docstring
-#         return func(*args, **kwargs)
-#     return closure
-
-
 def _name_selector(pattern: str, match_func: Callable):
     def closure(sf: T.StructField) -> bool:
         closure.__doc__ = f"Matches '{pattern}'"
@@ -127,10 +120,22 @@ def complex() -> ColumnSelector:
     return _dtype_selector(PySparkTypes.COMPLEX.value)
 
 
+def by_dtype(*dtype: T.DataType):
+    return _dtype_selector(dtype)
+
+
 def required() -> ColumnSelector:
     def closure(sf: T.StructField) -> bool:
         """Required fields"""
         return not sf.nullable
+
+    return ColumnSelector(expression=closure)
+
+
+def exclude(*names: str) -> ColumnSelector:
+    def closure(sf: T.StructField) -> bool:
+        """Required fields"""
+        return sf.name not in names
 
     return ColumnSelector(expression=closure)
 
@@ -158,3 +163,8 @@ def starts_with(pattern: str):
 def ends_with(pattern: str):
     """Selector capturing column names ending with the exact pattern specified."""
     return _name_selector(pattern=pattern, match_func=str.endswith)
+
+
+def by_name(*name: str):
+    """Selector capturing column(s) by name"""
+    return matches(pattern=rf"^({'|'.join(name)})$")
