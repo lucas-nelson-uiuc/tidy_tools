@@ -1,3 +1,3 @@
 # Tidy Tools
 
-Description here at some point ...
+Declarative programming for PySpark workflows.
