@@ -42,12 +42,28 @@ nav:
       - user-guide/concepts/declarative.md
     - Modules:
       - user-guide/modules/modules.md
-      - Core:
-        - user-guide/modules/core/api.md
-      - Models:
-        - user-guide/modules/models/api.md
+      - user-guide/modules/core.md
+      - user-guide/modules/frame.md
+      - user-guide/modules/models.md
+  - API Documentation:
+    - api/api-reference.md
+    - Core:
+      - api/core.md
   - Development:
     - development/contribution.md
 
 plugins:
   - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            members_order: source
+            separate_signature: true
+            filters: ["!^_"]
+            docstring_options:
+              ignore_init_summary: true
+            merge_init_into_class: true
+            show_signature_annotations: true
+            signature_crossrefs: true
