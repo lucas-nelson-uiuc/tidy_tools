@@ -30,6 +30,12 @@ def generate_sample(n_row: int, schema: dict) -> DataFrame:
     DataFrame[name: string, hometown: string]
     """
     sample = ps.DataFrame(
-        {column: random.choices(values, k=n_row) for column, values in schema.items()}
+        {
+            "id": range(n_row),
+            **{
+                column: random.choices(values, k=n_row)
+                for column, values in schema.items()
+            },
+        }
     )
     return sample.to_spark()
