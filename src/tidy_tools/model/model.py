@@ -89,28 +89,29 @@ class TidyDataModel:
         return [field for field in attrs.fields(cls) if not is_optional(field)]
 
     @classmethod
-    def _read(cls, func: Callable, *args, **kwargs):
-        return functools.partial(func, schema=cls.schema(), *args, **kwargs)
-
-    @classmethod
-    def read(
-        cls,
-        *source: Iterable[str],
-        read_options: dict = dict(),
-        union_func: Callable = DataFrame.unionByName,
-    ) -> DataFrame:
-        cls.document("_source", source)
-        read_func = cls._read(**read_options)
-        data = functools.reduce(union_func, map(read_func, source))
-        return cls.tidy(data)
-
-    @classmethod
     def __preprocess__(cls, data: DataFrame) -> DataFrame:
         return data
 
     @classmethod
     def __postprocess__(cls, data: DataFrame) -> DataFrame:
         return data
+
+    @classmethod
+    def _read(cls, func: Callable, *args, **kwargs):
+        return functools.partial(func, schema=cls.schema(), *args, **kwargs)
+
+    @classmethod
+    def read(
+        cls,
+        *source: str,
+        read_options: dict = dict(),
+        union_func: Callable = DataFrame.unionByName,
+    ) -> DataFrame:
+        cls.document("_source", source)
+        read_func = cls._read(**read_options)
+        data = functools.reduce(union_func, map(read_func, source))
+        process = cls.tidy()
+        return process(data)
 
     @classmethod
     def transform(cls, data: DataFrame):
