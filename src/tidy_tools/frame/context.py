@@ -3,7 +3,7 @@ from pathlib import Path
 import attrs
 from attrs import define
 from attrs import field
-from tidy_tools.frame.logger import TidyLogHandler
+from tidy_tools.frame.handler import TidyLogHandler
 
 
 @define

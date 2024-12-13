@@ -14,7 +14,7 @@ from pyspark.sql import GroupedData
 from tidy_tools.core import reader
 from tidy_tools.core.selector import ColumnSelector
 from tidy_tools.frame.context import TidyContext
-from tidy_tools.frame.logger import TidyLogHandler
+from tidy_tools.frame.handler import TidyLogHandler
 
 
 @define
