@@ -1,5 +1,5 @@
 from pyspark.sql import DataFrame
-from tidy_tools.core.filters import filter_nulls
+from tidy_tools.core.filter import filter_nulls
 
 
 def validate_nulls(data: DataFrame, *columns: str, **kwargs) -> bool:

@@ -89,20 +89,28 @@ class TidyDataModel:
 
     @classmethod
     def _read(cls, func: Callable, *args, **kwargs):
-        return functools.partial(func.schema(cls.schema()).csv, *args, **kwargs)
+        return functools.partial(func, schema=cls.schema(), *args, **kwargs)
 
     @classmethod
     def read(
         cls,
         *source: Iterable[str],
         read_options: dict = dict(),
-        preprocess: Callable = None,
-        postprocess: Callable = None,
         union_func: Callable = DataFrame.unionByName,
     ) -> DataFrame:
         cls.document("_source", source)
         read_func = cls._read(**read_options)
-        return functools.reduce(union_func, map(read_func, source))
+        data = functools.reduce(union_func, map(read_func, source))
+        return functools.reduce()
+        if hasattr(cls, "__preprocess__"):
+            data = cls.__preprocess__(data)
+
+        data = cls.tidy(data)
+
+        if hasattr(cls, "__postprocess__"):
+            data = cls.__postprocess__(data)
+
+        return data
 
     @classmethod
     def transform(cls, data: DataFrame):
@@ -201,7 +209,7 @@ class TidyDataModel:
         return data
 
     @classmethod
-    def pipe(cls, data: DataFrame) -> DataFrame:
+    def tidy(cls, data: DataFrame) -> DataFrame:
         return cls.validate(cls.transform(data=data))
 
     @classmethod
