@@ -48,16 +48,16 @@ class TidyDataFrame:
     #     for name, func in inspect.getmembers(module, inspect.isfunction):
     #         setattr(cls, name, func)
 
-    def _snapshot(self, operation: str, message: str, dimensions: tuple[int, int]):
-        """Captures a snapshot of the DataFrame"""
-        # snapshot = TidySnapshot(
-        #     operation=operation,
-        #     message=message,
-        #     schema=self._data.schema,
-        #     dimensions=dimensions,
-        # )
-        # self._context.log.append(snapshot)
-        pass
+    # def _snapshot(self, operation: str, message: str, dimensions: tuple[int, int]):
+    #     """Captures a snapshot of the DataFrame"""
+    #     # snapshot = TidySnapshot(
+    #     #     operation=operation,
+    #     #     message=message,
+    #     #     schema=self._data.schema,
+    #     #     dimensions=dimensions,
+    #     # )
+    #     # self._context.log.append(snapshot)
+    #     pass
 
     def _log(
         self,
@@ -65,6 +65,23 @@ class TidyDataFrame:
         message: str = "no message provided",
         level: str = "success",
     ) -> None:
+        """
+        Log message to handler(s).
+
+        Parameters
+        ----------
+        operation : str
+            Name of operation (e.g. function).
+        message : str
+            Text to describe operation.
+        level : str
+            Logging level to register message. Must be one of the levels recognized by `loguru.logger`.
+
+        Returns
+        -------
+        None
+            No output returned since message is logged to handler(s).
+        """
         getattr(logger, level)(f"#> {operation:<12}: {message}")
         return self
 
@@ -115,33 +132,38 @@ class TidyDataFrame:
             raise e
 
     @property
-    def columns(self):
-        """Returns the raw Spark DataFrame"""
+    def columns(self):  # numpydoc ignore=RT01
+        """Return the raw Spark DataFrame."""
         return self._data.columns
 
     @property
-    def dtypes(self):
-        """Return all column names and data types as a list"""
+    def dtypes(self):  # numpydoc ignore=RT01
+        """Return all column names and data types as a list."""
         return self._data.dtypes
 
     @property
-    def describe(self, *cols):
+    def describe(self, *cols):  # numpydoc ignore=PR01,RT01
         """Compute basic statistics for numeric and string columns."""
         return self._data.describe(*cols)
 
     @property
-    def schema(self):
+    def schema(self):  # numpydoc ignore=RT01
+        """Return schema as a pyspark.sql.types.StructType object."""
         return self._data.schema
 
     @property
-    def data(self):
-        """Returns the raw Spark DataFrame"""
-        logger.info(">> exit: TidyDataFrame context ending.")
+    def data(self):  # numpydoc ignore=RT01
+        """Return the raw Spark DataFrame."""
+        self._log(operation="exit", message=self.__repr__())
         return self._data
 
-    def display(self, limit: Optional[int] = None):
+    def isEmpty(self):  # numpydoc ignore=RT01
+        """Check if data is empty."""
+        return self._data.isEmpty()
+
+    def display(self, limit: Optional[int] = None) -> None:
         """
-        Control execution of display method
+        Control execution of display method.
 
         This method masks the `pyspark.sql.DataFrame.display` method. This method does not
         mask the native PySpark display function.
@@ -149,6 +171,17 @@ class TidyDataFrame:
         Often, the `.display()` method will need to be disabled for logging purposes. Similar
         to toggling the `.count()` method, users can temporarily disable a DataFrame's
         ability to display to the console by passing `toggle_display = True`.
+
+        Parameters
+        ----------
+        limit : int
+            Number of rows to display to console. If context is provided, the limit provided
+            will be used.
+
+        Returns
+        -------
+        None
+            Displays data to console or nothing if display is disabled.
         """
         if not self._context.display:
             self._log(
@@ -160,7 +193,7 @@ class TidyDataFrame:
 
     def show(self, limit: Optional[int] = None):
         """
-        Control execution of display method
+        Control execution of display method.
 
         This method masks the `pyspark.sql.DataFrame.display` method. This method does not
         mask the native PySpark display function.
@@ -168,6 +201,17 @@ class TidyDataFrame:
         Often, the `.display()` method will need to be disabled for logging purposes. Similar
         to toggling the `.count()` method, users can temporarily disable a DataFrame's
         ability to display to the console by passing `toggle_display = True`.
+
+        Parameters
+        ----------
+        limit : int
+            Number of rows to display to console. If context is provided, the limit provided
+            will be used.
+
+        Returns
+        -------
+        None
+            Displays data to console or nothing if display is disabled.
         """
         if not self._context.display:
             self._log(
@@ -178,11 +222,22 @@ class TidyDataFrame:
         return self
 
     def count(self, result: Optional[DataFrame] = None) -> int:
-        """Retrieve number of rows in DataFrame."""
+        """
+        Return number of rows in DataFrame.
+
+        Parameters
+        ----------
+        result : DataFrame, optional
+            If provided, this will trigger a count operation. Else, the count will reference
+            the last count or zero if context disables count.
+
+        Returns
+        -------
+        int
+            Number of rows in data or zero if count is disabled in context.
+        """
         if not self._context.count:
             return 0
-        # if not self._context.log:
-        #     return self._data.count()
         if result:
             return result._data.count()
         return self._data.count()
@@ -232,18 +287,50 @@ class TidyDataFrame:
         result = self._data.withColumn(colName, col)
         return TidyDataFrame(result, self._context)
 
-    def transform(self, func: Callable, *args, **kwargs):
-        """Concise syntax for chaining custom transformations together."""
+    def transform(self, func: Callable, *args, **kwargs) -> "TidyDataFrame":
+        """
+        Concise syntax for chaining custom transformations together.
+
+        If calling multiple times in succession, consider using `TidyDataFrame.pipe`.
+
+        Parameters
+        ----------
+        func : Callable
+            Custom transformation function(s) to apply to data.
+        *args : tuple
+            Arbitrary number of positional arguments to pass to `func`.
+        **kwargs : dict
+            Arbitrary number of keyword arguments to pass to `func`.
+
+        Returns
+        -------
+        TidyDataFrame
+            Transformed data.
+        """
         result = func(self, *args, **kwargs)
         return TidyDataFrame(result._data, self._context)
 
-    def pipe(self, *funcs: Callable):
-        """Chain multiple custom transformation functions to be applied iteratively."""
+    def pipe(self, *funcs: Callable) -> "TidyDataFrame":
+        """
+        Iteratively apply custom transformation functions.
+
+        Functional alias for `TidyDataFrame.transform`.
+
+        Parameters
+        ----------
+        *funcs : Callable
+            Custom transformation function(s) to apply to data.
+
+        Returns
+        -------
+        TidyDataFrame
+            Transformed data.
+        """
         result = functools.reduce(lambda init, func: init.transform(func), funcs, self)
 
         return TidyDataFrame(result._data, self._context)
 
-    def __getattr__(self, attr):
+    def __getattr__(self, attr: str) -> "TidyDataFrame":
         """
         Override default getattr 'dunder' method.
 
@@ -260,6 +347,21 @@ class TidyDataFrame:
 
         If the attribute is not available in pyspark.sql.DataFrame, the
         corresponding pyspark error will be raised.
+
+        Parameters
+        ----------
+        attr : str
+            Attribute to get from TidyDataFrame or PySpark DataFrame.
+
+        Returns
+        -------
+        TidyDataFrame
+            Data with attribute.
+
+        Raises
+        ------
+        AttributeError
+            If attribute cannot be found in TidyDataFrame or PySpark DataFrame.
         """
         if hasattr(self._data, attr):
 
