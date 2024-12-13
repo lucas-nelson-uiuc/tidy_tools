@@ -234,7 +234,7 @@ class TidyDataFrame:
         strict: bool = True,
         invert: bool = False,
         description: Optional[str] = None,
-    ):
+    ) -> "TidyDataFrame":
         compare_operator = all if strict else any
         selected = set(
             [
@@ -260,29 +260,56 @@ class TidyDataFrame:
         return self.select(*selectors, strict=strict, invert=True)
 
     @_record(message="removed {self.count() - self.count(result):,} rows")
-    def filter(self, condition, description: Optional[str] = None):
+    def filter(self, condition, description: Optional[str] = None) -> "TidyDataFrame":
         result = self._data.filter(condition)
         return TidyDataFrame(result, self._context)
 
     @_record(
-        message='added column {args[0] if args else kwargs.get("colName")}',
+        message='added `{args[0] if args else kwargs.get("colName")}` (type)',
         alias="mutate",
     )
-    def with_column(self, colName, col, description: Optional[str] = None):
+    def with_column(
+        self, colName, col, description: Optional[str] = None
+    ) -> "TidyDataFrame":
         result = self._data.withColumn(colName, col)
         return TidyDataFrame(result, self._context)
 
-    def withColumn(self, colName, col, description: Optional[str] = None):
+    def withColumn(
+        self, colName, col, description: Optional[str] = None
+    ) -> "TidyDataFrame":
         return self.with_column(colName, col, description)
 
     def with_columns(self, colsMap: dict) -> "TidyDataFrame":
-        for colName, col in colsMap.items():
-            result = self.with_column(colName, col)
-            self._data = result
-        return TidyDataFrame(result, self._context)
+        return functools.reduce(
+            lambda init, params: init.with_column(params[0], params[1]),
+            colsMap.items(),
+            self,
+        )
 
     def withColumns(self, colsMap: dict) -> "TidyDataFrame":
         return self.with_columns(colsMap)
+
+    @_record(
+        message='renamed `{args[0] if args else kwargs.get("existing")}` to `{args[1] if args else kwargs.get("new")}`',
+        alias="rename",
+    )
+    def rename(
+        self, existing: str, new: str, description: Optional[str] = None
+    ) -> "TidyDataFrame":
+        result = self._data.withColumnRenamed(existing, new)
+        return TidyDataFrame(result, self._context)
+
+    def withColumnRenamed(
+        self, existing, new, description: Optional[str] = None
+    ) -> "TidyDataFrame":
+        return self.rename(existing, new, description)
+
+    def withColumnsRenamed(self, colsMap: dict) -> "TidyDataFrame":
+        return functools.reduce(
+            lambda init, params: init.rename(params[0], params[1]),
+            colsMap.items(),
+            self,
+        )
 
     def transform(self, func: Callable, *args, **kwargs) -> "TidyDataFrame":
         """
