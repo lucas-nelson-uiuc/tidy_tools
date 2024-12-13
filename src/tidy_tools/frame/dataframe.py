@@ -265,7 +265,7 @@ class TidyDataFrame:
         return TidyDataFrame(result, self._context)
 
     @_record(
-        message='added `{args[0] if args else kwargs.get("colName")}` (type: dict(result.dtypes).get(args[0] if args else kwargs.get("colName")))',
+        message='added `{args[0] if args else kwargs.get("colName")}` (type: {dict(result.dtypes).get(args[0] if args else kwargs.get("colName"))})',
         alias="mutate",
     )
     def with_column(
