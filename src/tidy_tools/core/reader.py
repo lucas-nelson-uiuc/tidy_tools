@@ -10,9 +10,9 @@ from pyspark.sql import DataFrame
 def read(
     *source: str | Path,
     read_func: Callable,
-    merge_func: bool | Callable = DataFrame.unionByName,
+    merge_func: Callable = DataFrame.unionByName,
     **read_options: dict,
-) -> dict[DataFrame] | DataFrame:
+) -> DataFrame:
     """
     Load data from source(s) as a PySpark DataFrame.
 
@@ -26,6 +26,11 @@ def read(
         Function to merge data from sources. Only applied if multiple sources are provided.
     **read_options : dict
         Additional arguments to pass to the read_function.
+
+    Returns
+    -------
+    DataFrame
+        Object containing data from all source(s) provided.
     """
     read_func = functools.partial(read_func, **read_options)
     try:
@@ -35,3 +40,5 @@ def read(
     except PySparkException as e:
         logger.error("Reader failed while loading data.")
         raise e
+    finally:
+        return data
