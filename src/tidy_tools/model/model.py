@@ -2,7 +2,6 @@ import datetime
 import decimal
 import functools
 import operator
-import sys
 import typing
 from collections import deque
 from types import MappingProxyType
@@ -16,9 +15,6 @@ from pyspark.sql import Column
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
-
-logger.remove()
-logger.add(sys.stderr, format="{time:HH:mm:ss} | <level>{level:<8}</level> | {message}")
 
 
 PYSPARK_TYPES = MappingProxyType(
@@ -40,7 +36,19 @@ def get_pyspark_type(field: attrs.Attribute) -> bool:
 
 
 def is_optional(field: attrs.Attribute) -> bool:
-    """Check if a field is optional"""
+    """
+    Check if a field is optional.
+
+    Parameters
+    ----------
+    field : attrs.Attribute
+        Field defined in TidyDataModel.
+
+    Returns
+    -------
+    bool
+        True if field is optional; else, False.
+    """
     union_type_hint = typing.get_origin(field.type) is typing.Union
     accepts_none = type(None) in typing.get_args(field.type)
     return union_type_hint and accepts_none
