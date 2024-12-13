@@ -71,7 +71,7 @@ class TidyDataFrame:
         None
             No output returned since message is logged to handler(s).
         """
-        getattr(logger, level)(f"#> {operation:<12}: {message}")
+        getattr(logger, level)(f"#> {operation}: {message}")
         return self
 
     def _record(message: str, alias: Optional[str] = None) -> None:
@@ -106,7 +106,7 @@ class TidyDataFrame:
     ) -> "TidyDataFrame":
         try:
             read_func = functools.partial(read_func, **read_options)
-            data = reader.read(source, read_func=read_func)
+            data = reader.read(*source, read_func=read_func)
             if context:
                 return TidyDataFrame(data, context)
             return TidyDataFrame(data)
