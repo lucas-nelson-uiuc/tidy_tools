@@ -99,7 +99,7 @@ class TidyDataFrame:
     @classmethod
     def from_source(
         cls,
-        *source: str | Path | DataFrame,
+        *source: str | Path,
         context: Optional[TidyContext] = None,
         read_func: Optional[Callable] = None,
         **read_options: dict,
