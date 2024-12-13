@@ -20,3 +20,7 @@ repos:
   rev: v3.14.0
   hooks:
     - id: reorder-python-imports
+- repo: https://github.com/stefmolin/numpydoc
+  rev: 6711ab3
+  hooks:
+    - id: numpydoc-validation
