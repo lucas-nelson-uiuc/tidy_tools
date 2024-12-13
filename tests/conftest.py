@@ -1,4 +1,5 @@
 import datetime
+import tempfile
 
 import pytest
 from pyspark.sql import SparkSession
@@ -7,13 +8,18 @@ from tidy_tools.frame import TidyDataFrame
 
 
 @pytest.fixture
-def spark_fixture():
+def spark_fixture():  # numpydoc ignore=PR01,YD01
     spark = SparkSession.builder.appName("Testing PySpark Example").getOrCreate()
     yield spark
 
 
 @pytest.fixture
-def simpsons_data(spark_fixture):
+def log_file():  # numpydoc ignore=PR01,YD01
+    yield tempfile.TemporaryFile(mode="w+")
+
+
+@pytest.fixture
+def simpsons_data(spark_fixture):  # numpydoc ignore=PR01,YD01
     """Sample dataset for The Simpsons characters."""
     data = spark_fixture.createDataFrame(
         [
@@ -60,7 +66,7 @@ def simpsons_data(spark_fixture):
 
 
 @pytest.fixture
-def eits_data(spark_fixture):
+def eits_data(spark_fixture):  # numpydoc ignore=PR01,YD01
     """Sample dataset for Explosions in the Sky albums."""
     data = spark_fixture.createDataFrame(
         [
