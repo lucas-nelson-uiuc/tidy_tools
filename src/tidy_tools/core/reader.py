@@ -32,11 +32,14 @@ def read(
     DataFrame
         Object containing data from all source(s) provided.
     """
+
     read_func = functools.partial(read_func, **read_options)
     try:
-        logger.info(f"Attempting to read {len(source)} source(s): {', '.join(source)}")
+        logger.info(
+            f"Reader: Attempting to load {len(source)} source(s): {', '.join(source)}"
+        )
         data = functools.reduce(merge_func, map(read_func, source))
-        logger.success(f"Loaded {data.count():,} rows.")
+        logger.success(f"Reader: Loaded {data.count():,} rows.")
     except PySparkException as e:
         logger.error("Reader failed while loading data.")
         raise e
