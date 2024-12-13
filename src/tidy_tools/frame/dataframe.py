@@ -48,17 +48,6 @@ class TidyDataFrame:
     #     for name, func in inspect.getmembers(module, inspect.isfunction):
     #         setattr(cls, name, func)
 
-    # def _snapshot(self, operation: str, message: str, dimensions: tuple[int, int]):
-    #     """Captures a snapshot of the DataFrame"""
-    #     # snapshot = TidySnapshot(
-    #     #     operation=operation,
-    #     #     message=message,
-    #     #     schema=self._data.schema,
-    #     #     dimensions=dimensions,
-    #     # )
-    #     # self._context.log.append(snapshot)
-    #     pass
-
     def _log(
         self,
         operation: str = "comment",
@@ -95,15 +84,8 @@ class TidyDataFrame:
 
                     # log message to logging handler(s)
                     description = kwargs.get("description", "")
-                    # if self._context.log is not None:
-                    #     self._snapshot(
-                    #         operation=alias or func.__name__,
-                    #         message = eval(f"f'{message} ({description})'").strip().replace(" ()", ""),
-                    #         dimensions=(self.count(), len(self._data.columns)),
-                    #     )
                     self._log(
                         operation=alias or func.__name__,
-                        # message=eval(f"f'{message}'") + f" - {kwargs.get('description')}",
                         message=eval(f"f'{message} ({description})'")
                         .strip()
                         .replace(" ()", ""),
@@ -157,9 +139,12 @@ class TidyDataFrame:
         self._log(operation="exit", message=self.__repr__())
         return self._data
 
-    def isEmpty(self):  # numpydoc ignore=RT01
+    def is_empty(self):  # numpydoc ignore=RT01
         """Check if data is empty."""
         return self._data.isEmpty()
+
+    def isEmpty(self):
+        return self.is_empty()
 
     def display(self, limit: Optional[int] = None) -> None:
         """
@@ -283,9 +268,21 @@ class TidyDataFrame:
         message='added column {args[0] if args else kwargs.get("colName")}',
         alias="mutate",
     )
-    def withColumn(self, colName, col, description: Optional[str] = None):
+    def with_column(self, colName, col, description: Optional[str] = None):
         result = self._data.withColumn(colName, col)
         return TidyDataFrame(result, self._context)
+
+    def withColumn(self, colName, col, description: Optional[str] = None):
+        return self.with_column(colName, col, description)
+
+    def with_columns(self, colsMap: dict) -> "TidyDataFrame":
+        for colName, col in colsMap.items():
+            result = self.with_column(colName, col)
+            self._data = result
+        return TidyDataFrame(result, self._context)
+
+    def withColumns(self, colsMap: dict) -> "TidyDataFrame":
+        return self.with_columns(colsMap)
 
     def transform(self, func: Callable, *args, **kwargs) -> "TidyDataFrame":
         """
