@@ -1,4 +1,6 @@
+from contextlib import contextmanager
 from pathlib import Path
+from typing import ContextManager
 
 import attrs
 from attrs import define
@@ -23,3 +25,18 @@ class TidyContext:
         if not isinstance(filepath, Path):
             filepath = Path(filepath).resolve()
         filepath.write_text(self.save())
+
+
+@contextmanager
+def tidyworkflow(save: str | bool = False, **parameters) -> ContextManager:
+    context = TidyContext(**parameters)
+    try:
+        yield context
+    finally:
+        if not save:
+            pass
+        if isinstance(save, bool):
+            return attrs.asdict(context)
+        if isinstance(save, str):
+            file = Path(save).resolve()
+            file.write_text(attrs.asdict(context))
