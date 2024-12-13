@@ -15,6 +15,7 @@ from pyspark.sql import Column
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
+from tidy_tools import reader
 from tidy_tools.pipeline import compose
 
 
@@ -105,11 +106,10 @@ class TidyDataModel:
         cls,
         *source: str,
         read_options: dict = dict(),
-        union_func: Callable = DataFrame.unionByName,
     ) -> DataFrame:
         cls.document("_source", source)
         read_func = cls._read(**read_options)
-        data = functools.reduce(union_func, map(read_func, source))
+        data = reader.read(*source, read_func=read_func)
         process = cls.tidy()
         return process(data)
 

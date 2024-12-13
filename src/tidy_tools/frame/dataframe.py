@@ -97,7 +97,7 @@ class TidyDataFrame:
         return decorator
 
     @classmethod
-    def from_source(
+    def read(
         cls,
         *source: str | Path,
         context: Optional[TidyContext] = None,
@@ -265,7 +265,7 @@ class TidyDataFrame:
         return TidyDataFrame(result, self._context)
 
     @_record(
-        message='added `{args[0] if args else kwargs.get("colName")}` (type: {dict(result.dtypes).get(args[0] if args else kwargs.get("colName"))})',
+        message='{"edited" if (args[0] if args else kwargs.get("colName")) in self._data.columns else "added"} `{args[0] if args else kwargs.get("colName")}` (type: {dict(result.dtypes).get(args[0] if args else kwargs.get("colName"))})',
         alias="mutate",
     )
     def with_column(
