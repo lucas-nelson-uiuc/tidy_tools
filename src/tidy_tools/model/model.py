@@ -15,6 +15,7 @@ from pyspark.sql import Column
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
+from tidy_tools.pipeline import compose
 
 
 PYSPARK_TYPES = MappingProxyType(
@@ -101,15 +102,14 @@ class TidyDataModel:
         cls.document("_source", source)
         read_func = cls._read(**read_options)
         data = functools.reduce(union_func, map(read_func, source))
-        return functools.reduce()
-        if hasattr(cls, "__preprocess__"):
-            data = cls.__preprocess__(data)
+        return cls.tidy(data)
 
-        data = cls.tidy(data)
+    @classmethod
+    def __preprocess__(cls, data: DataFrame) -> DataFrame:
+        return data
 
-        if hasattr(cls, "__postprocess__"):
-            data = cls.__postprocess__(data)
-
+    @classmethod
+    def __postprocess__(cls, data: DataFrame) -> DataFrame:
         return data
 
     @classmethod
@@ -209,8 +209,24 @@ class TidyDataModel:
         return data
 
     @classmethod
-    def tidy(cls, data: DataFrame) -> DataFrame:
-        return cls.validate(cls.transform(data=data))
+    def tidy(cls) -> Callable:
+        """
+        Method for composing processing functions.
+
+        If present, the methods are executed in the following order:
+            - pre-processing
+            - transformations
+            - validations
+            - post-processing
+
+        Returns
+        -------
+        Callable
+            Function to call listed methods.
+        """
+        return compose(
+            cls.__preprocess__, cls.transform, cls.validate, cls.__postprocess__
+        )
 
     @classmethod
     def show_errors(
