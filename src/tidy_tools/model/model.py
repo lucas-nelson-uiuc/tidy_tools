@@ -27,17 +27,19 @@ class TidyDataModel:
         return T.StructType(
             [
                 T.StructField(
-                    field.name,
-                    get_pyspark_type(field) if coerce_types else T.StringType(),
-                    is_optional(field),
+                    cls_field.name,
+                    get_pyspark_type(cls_field) if coerce_types else T.StringType(),
+                    is_optional(cls_field),
                 )
-                for field in attrs.fields(cls)
+                for cls_field in attrs.fields(cls)
             ]
         )
 
     @classmethod
     def required_fields(cls) -> Iterable[str]:
-        return [field for field in attrs.fields(cls) if not is_optional(field)]
+        return [
+            cls_field for cls_field in attrs.fields(cls) if not is_optional(cls_field)
+        ]
 
     @classmethod
     def __preprocess__(cls, data: DataFrame) -> DataFrame:
@@ -123,54 +125,14 @@ class TidyDataModel:
             Transformed data.
         """
         queue = {
-            cls_field.name: transform_field(cls_field, columns=data.columns)
+            cls_field: transform_field(
+                cls_field=cls_field, cls_field_exists=cls_field.alias in data.columns
+            )
             for cls_field in attrs.fields(cls)
         }
 
-        # queue = deque()
-
-        # for field in attrs.fields(cls):
-        #     if field.default:
-        #         if isinstance(field.default, attrs.Factory):
-        #             return_type = typing.get_type_hints(field.default.factory).get(
-        #                 "return"
-        #             )
-        #             assert (
-        #                 return_type is not None
-        #             ), "Missing type hint for return value! Redefine function to include type hint `def func() -> pyspark.sql.Column: ...`"
-        #             assert (
-        #                 return_type is Column
-        #             ), "Factory must return a pyspark.sql.Column!"
-        #             column = field.default.factory()
-        #         elif field.alias not in data.columns:
-        #             column = F.lit(field.default)
-        #         else:
-        #             column = F.when(
-        #                 F.col(field.alias).isNull(), field.default
-        #             ).otherwise(F.col(field.alias))
-        #     else:
-        #         column = F.col(field.alias)
-
-        #     if field.name != field.alias:
-        #         column = column.alias(field.name)
-
-        #     field_type = get_pyspark_type(field)
-        #     match field_type:
-        #         case T.DateType():
-        #             column = column.cast(field_type)
-        #         case T.TimestampType():
-        #             column = column.cast(field_type)
-        #         case _:
-        #             column = column.cast(field_type)
-
-        #     if field.converter:
-        #         column = field.converter(column)
-
-        #     queue.append(column)
-        #     cls.document("_transformations", {field.name: column})
-
         return data.withColumns(
-            {cls_field: column for cls_field, column in queue.items()}
+            {cls_field.name: column for cls_field, column in queue.items()}
         )
 
     @classmethod
@@ -191,20 +153,20 @@ class TidyDataModel:
             Original data passed to function.
         """
         errors = {
-            field.name: validate_field(field, data=data)
-            for field in attrs.fields(cls)
-            if field.validator
+            cls_field.name: validate_field(cls_field, data=data)
+            for cls_field in attrs.fields(cls)
+            if cls_field.validator
         }
 
         n_rows = data.count()
-        for field, error in errors.items():
+        for cls_field, error in errors.items():
             if error is not None:
                 n_failures = error.data.count()
                 logger.error(
-                    f"Validation(s) failed for `{field.name}`: {n_failures:,} rows ({n_failures / n_rows:.1%})"
+                    f"Validation(s) failed for `{cls_field.name}`: {n_failures:,} rows ({n_failures / n_rows:.1%})"
                 )
             else:
-                logger.success(f"All validation(s) passed for `{field.name}`")
+                logger.success(f"All validation(s) passed for `{cls_field.name}`")
         return data
 
     @classmethod
