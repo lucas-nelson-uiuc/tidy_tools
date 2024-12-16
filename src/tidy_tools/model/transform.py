@@ -55,4 +55,4 @@ def transform_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Colum
     if cls_field.converter:
         column = cls_field.converter(column)
 
-    return cls_field
+    return column
