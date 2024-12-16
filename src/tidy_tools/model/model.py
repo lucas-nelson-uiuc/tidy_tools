@@ -153,7 +153,7 @@ class TidyDataModel:
             Original data passed to function.
         """
         errors = {
-            cls_field.name: validate_field(cls_field, data=data)
+            cls_field: validate_field(cls_field, data=data)
             for cls_field in attrs.fields(cls)
             if cls_field.validator
         }

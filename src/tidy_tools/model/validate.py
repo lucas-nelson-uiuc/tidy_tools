@@ -48,14 +48,14 @@ def _mapper(validator: Callable) -> Column:
             return lambda name: validator(F.col(name))
 
 
-def validate_field(field: attrs.Attribute, data: DataFrame) -> TidyError:
+def validate_field(cls_field: attrs.Attribute, data: DataFrame) -> TidyError:
     """
-    Apply validation function(s) to schema field.
+    Apply validation function(s) to schema cls_field.
 
     Parameters
     ----------
-    field : attrs.Attribute
-        Schema field.
+    cls_field : attrs.Attribute
+        Schema for field in class.
     data : DataFrame
         Data to validate field against.
 
@@ -63,14 +63,14 @@ def validate_field(field: attrs.Attribute, data: DataFrame) -> TidyError:
     -------
     TidyError
         If the validation function fails for at least one row, an error handler
-        is returned for further processing.
+        is returned for further logging.
     """
-    validate_func = _mapper(field.validator)
-    invalid_entries = data.filter(operator.inv(validate_func(field.name)))
+    validate_func = _mapper(cls_field.validator)
+    invalid_entries = data.filter(operator.inv(validate_func(cls_field.name)))
     try:
         assert invalid_entries.isEmpty()
         error = None
     except AssertionError:
-        error = TidyError(field.name, validate_func, invalid_entries)
+        error = TidyError(cls_field.name, validate_func, invalid_entries)
     finally:
         return error
