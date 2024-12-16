@@ -44,9 +44,10 @@ def _mapper(validator: Callable) -> Column:
                 operator.and_,
                 map(lambda v: _mapper(v)(name=name), validator._validators),
             )
+        case _:  # assumes validator is user-defined function
+            return lambda name: validator(F.col(name))
 
 
-@classmethod
 def validate_field(field: attrs.Attribute, data: DataFrame) -> TidyError:
     """
     Apply validation function(s) to schema field.

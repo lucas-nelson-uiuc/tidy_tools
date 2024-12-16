@@ -123,8 +123,8 @@ class TidyDataModel:
             Transformed data.
         """
         queue = {
-            field.name: transform_field(field, columns=data.columns)
-            for field in attrs.fields(cls)
+            cls_field.name: transform_field(cls_field, columns=data.columns)
+            for cls_field in attrs.fields(cls)
         }
 
         # queue = deque()
@@ -169,7 +169,9 @@ class TidyDataModel:
         #     queue.append(column)
         #     cls.document("_transformations", {field.name: column})
 
-        return data.withColumns({field: column for field, column in queue.items()})
+        return data.withColumns(
+            {cls_field: column for cls_field, column in queue.items()}
+        )
 
     @classmethod
     def validate(cls, data: DataFrame) -> DataFrame:

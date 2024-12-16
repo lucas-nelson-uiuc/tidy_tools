@@ -7,8 +7,7 @@ from pyspark.sql import types as T
 from tidy_tools.model._utils import get_pyspark_type
 
 
-@classmethod
-def transform_field(cls, field: attrs.Attribute, columns: list[str]) -> Column:
+def transform_field(field: attrs.Attribute, columns: list[str]) -> Column:
     """
     Transform data according to a class schema.
 
