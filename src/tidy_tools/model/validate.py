@@ -1,5 +1,6 @@
 import functools
 import operator
+from typing import Callable
 
 import attrs
 from pyspark.sql import Column
@@ -8,7 +9,7 @@ from pyspark.sql import functions as F
 from tidy_tools.error import TidyError
 
 
-def _mapper(validator: attrs._ValidatorType) -> Column:
+def _mapper(validator: Callable) -> Column:
     """
     Decompose attrs validator patterns into native Python expressions to be executed in PySpark.
 
