@@ -124,7 +124,7 @@ class TidyDataModel:
         """
         queue = {
             field.name: transform_field(field, columns=data.columns)
-            for field in attrs.field(cls)
+            for field in attrs.fields(cls)
         }
 
         # queue = deque()
