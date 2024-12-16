@@ -41,10 +41,10 @@ nav:
     - Concepts:
       - user-guide/concepts/declarative.md
     - Modules:
-      - user-guide/modules/modules.md
       - user-guide/modules/core.md
-      - user-guide/modules/frame.md
+      - user-guide/modules/dataframe.md
       - user-guide/modules/models.md
+      - user-guide/modules/workflow.md
   - API Documentation:
     - api/api-reference.md
     - Core:
