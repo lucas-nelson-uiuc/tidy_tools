@@ -1,69 +1,19 @@
-import datetime
-import decimal
 import functools
-import operator
-import typing
-from collections import deque
-from types import MappingProxyType
 from typing import Callable
 from typing import Iterable
 
 import attrs
 from attrs import define
 from loguru import logger
-from pyspark.sql import Column
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
 from tidy_tools.functions import reader
+from tidy_tools.model._utils import get_pyspark_type
+from tidy_tools.model._utils import is_optional
+from tidy_tools.model.transform import transform_field
+from tidy_tools.model.validate import validate_field
 from tidy_tools.workflow.pipeline import compose
-
-
-PYSPARK_TYPES = MappingProxyType(
-    {
-        str: T.StringType(),
-        int: T.IntegerType(),
-        float: T.FloatType(),
-        decimal.Decimal: T.DecimalType(38, 6),
-        datetime.date: T.DateType(),
-        datetime.datetime: T.TimestampType(),
-    }
-)
-
-
-def get_pyspark_type(field: attrs.Attribute) -> bool:
-    if isinstance(field.type, T.DataType):
-        return field.type
-    return PYSPARK_TYPES.get(field.type, T.NullType())
-
-
-def is_optional(field: attrs.Attribute) -> bool:
-    """
-    Check if a field is optional.
-
-    Parameters
-    ----------
-    field : attrs.Attribute
-        Field defined in TidyDataModel.
-
-    Returns
-    -------
-    bool
-        True if field is optional; else, False.
-    """
-    union_type_hint = typing.get_origin(field.type) is typing.Union
-    accepts_none = type(None) in typing.get_args(field.type)
-    return union_type_hint and accepts_none
-
-
-@define
-class TidyError:
-    column: str
-    validation: Callable
-    data: DataFrame
-
-    def __repr__(self):
-        return f"TidyError(column={self.column}, validation={self.validation(self.column)}, data={self.data.count():,} rows)"
 
 
 @define
@@ -91,122 +41,168 @@ class TidyDataModel:
 
     @classmethod
     def __preprocess__(cls, data: DataFrame) -> DataFrame:
+        """
+        Optional function to apply to data before transformation and validation.
+
+        Parameters
+        ----------
+        data : DataFrame
+            Object to apply function to.
+
+        Returns
+        -------
+        DataFrame
+            Transformed DataFrame.
+        """
         return data
 
     @classmethod
     def __postprocess__(cls, data: DataFrame) -> DataFrame:
-        return data
+        """
+        Optional function to apply to data after transformation and validation.
 
-    @classmethod
-    def _read(cls, func: Callable, *args, **kwargs):
-        return functools.partial(func, schema=cls.schema(), *args, **kwargs)
+        Parameters
+        ----------
+        data : DataFrame
+            Object to apply function to.
+
+        Returns
+        -------
+        DataFrame
+            Transformed DataFrame.
+        """
+        return data
 
     @classmethod
     def read(
         cls,
         *source: str,
+        read_func: Callable,
         read_options: dict = dict(),
     ) -> DataFrame:
+        """
+        Load data from source(s) and apply processing, transformation, and validation procedures.
+
+        See `TidyDataModel.tidy()` for more details.
+
+        Parameters
+        ----------
+        *source : str
+            Arbitrary number of reference(s) to data source(s).
+        read_func : Callable
+            Function to load data from source(s).
+        read_options : dict
+            Keyword arguments to pass to `read_func`.
+
+        Returns
+        -------
+        DataFrame
+            Single DataFrame containing data from all source(s) coerced according to class schema.
+        """
         cls.document("_source", source)
-        read_func = cls._read(**read_options)
+        read_func = functools.partial(read_func, schema=cls.schema(), **read_options)
         data = reader.read(*source, read_func=read_func)
         process = cls.tidy()
         return process(data)
 
     @classmethod
     def transform(cls, data: DataFrame):
-        queue = deque()
+        """
+        Apply transformation functions to supported fields.
 
-        for field in attrs.fields(cls):
-            if field.default:
-                if isinstance(field.default, attrs.Factory):
-                    return_type = typing.get_type_hints(field.default.factory).get(
-                        "return"
-                    )
-                    assert (
-                        return_type is not None
-                    ), "Missing type hint for return value! Redefine function to include type hint `def func() -> pyspark.sql.Column: ...`"
-                    assert (
-                        return_type is Column
-                    ), "Factory must return a pyspark.sql.Column!"
-                    column = field.default.factory()
-                elif field.alias not in data.columns:
-                    column = F.lit(field.default)
-                else:
-                    column = F.when(
-                        F.col(field.alias).isNull(), field.default
-                    ).otherwise(F.col(field.alias))
+        Outputs messages to logging handlers.
+
+        Parameters
+        ----------
+        data : DataFrame
+            Object to apply transformation functions.
+
+        Returns
+        -------
+        DataFrame
+            Transformed data.
+        """
+        queue = {
+            field.name: transform_field(field, columns=data.columns)
+            for field in attrs.field(cls)
+        }
+
+        # queue = deque()
+
+        # for field in attrs.fields(cls):
+        #     if field.default:
+        #         if isinstance(field.default, attrs.Factory):
+        #             return_type = typing.get_type_hints(field.default.factory).get(
+        #                 "return"
+        #             )
+        #             assert (
+        #                 return_type is not None
+        #             ), "Missing type hint for return value! Redefine function to include type hint `def func() -> pyspark.sql.Column: ...`"
+        #             assert (
+        #                 return_type is Column
+        #             ), "Factory must return a pyspark.sql.Column!"
+        #             column = field.default.factory()
+        #         elif field.alias not in data.columns:
+        #             column = F.lit(field.default)
+        #         else:
+        #             column = F.when(
+        #                 F.col(field.alias).isNull(), field.default
+        #             ).otherwise(F.col(field.alias))
+        #     else:
+        #         column = F.col(field.alias)
+
+        #     if field.name != field.alias:
+        #         column = column.alias(field.name)
+
+        #     field_type = get_pyspark_type(field)
+        #     match field_type:
+        #         case T.DateType():
+        #             column = column.cast(field_type)
+        #         case T.TimestampType():
+        #             column = column.cast(field_type)
+        #         case _:
+        #             column = column.cast(field_type)
+
+        #     if field.converter:
+        #         column = field.converter(column)
+
+        #     queue.append(column)
+        #     cls.document("_transformations", {field.name: column})
+
+        return data.withColumns({field: column for field, column in queue.items()})
+
+    @classmethod
+    def validate(cls, data: DataFrame) -> DataFrame:
+        """
+        Apply validation functions to supported fields.
+
+        Outputs messages to logging handlers.
+
+        Parameters
+        ----------
+        data : DataFrame
+            Object to apply validations functions.
+
+        Returns
+        -------
+        DataFrame
+            Original data passed to function.
+        """
+        errors = {
+            field.name: validate_field(field, data=data)
+            for field in attrs.fields(cls)
+            if field.validator
+        }
+
+        n_rows = data.count()
+        for field, error in errors.items():
+            if error is not None:
+                n_failures = error.data.count()
+                logger.error(
+                    f"Validation(s) failed for `{field.name}`: {n_failures:,} rows ({n_failures / n_rows:.1%})"
+                )
             else:
-                column = F.col(field.alias)
-
-            if field.name != field.alias:
-                column = column.alias(field.name)
-
-            field_type = get_pyspark_type(field)
-            match field_type:
-                case T.DateType():
-                    column = column.cast(field_type)
-                case T.TimestampType():
-                    column = column.cast(field_type)
-                case _:
-                    column = column.cast(field_type)
-
-            if field.converter:
-                column = field.converter(column)
-
-            queue.append(column)
-            cls.document("_transformations", {field.name: column})
-
-        return data.withColumns(
-            {field.name: column for field, column in zip(attrs.fields(cls), queue)}
-        )
-
-    @classmethod
-    def _validate(cls, validator) -> Column:
-        match validator.__class__.__name__:
-            case "_NumberValidator":
-                return lambda name: validator.compare_func(F.col(name), validator.bound)
-            case "_InValidator":
-                return lambda name: F.col(name).isin(validator.options)
-            case "_MatchesReValidator":
-                return lambda name: F.col(name).rlike(validator.pattern)
-            case "_MinLengthValidator":
-                return lambda name: operator.ge(
-                    F.length(F.col(name)), validator.min_length
-                )
-            case "_MaxLengthValidator":
-                return lambda name: operator.le(
-                    F.length(F.col(name)), validator.max_length
-                )
-            case "_OrValidator":
-                return lambda name: functools.reduce(
-                    operator.or_,
-                    map(lambda v: cls._validate(v)(name=name), validator._validators),
-                )
-            case "_AndValidator":
-                return lambda name: functools.reduce(
-                    operator.and_,
-                    map(lambda v: cls._validate(v)(name=name), validator._validators),
-                )
-
-    @classmethod
-    def validate(cls, data: DataFrame):
-        errors = deque()
-        for field in attrs.fields(cls):
-            if field.validator:
-                validate_func = cls._validate(field.validator)
-                invalid_entries = data.filter(operator.inv(validate_func(field.name)))
-                if not invalid_entries.isEmpty():
-                    logger.error(
-                        f"{field.name} failed {invalid_entries.count():,} ({invalid_entries.count() / data.count():.1%}) rows"
-                    )
-                    errors.append(TidyError(field.name, validate_func, invalid_entries))
-                else:
-                    logger.success(f"All validation(s) passed for `{field.name}`")
-                cls.document(
-                    "_validations", {field.name: validate_func}
-                )  # TODO: move documentation into cls._validate
-        cls.document("_errors", errors)
+                logger.success(f"All validation(s) passed for `{field.name}`")
         return data
 
     @classmethod
