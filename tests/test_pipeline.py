@@ -1,6 +1,6 @@
 import pytest
-from tidy_tools.pipeline import compose
-from tidy_tools.pipeline import pipe
+from tidy_tools.workflow.pipeline import compose
+from tidy_tools.workflow.pipeline import pipe
 
 
 class TestPipeline:

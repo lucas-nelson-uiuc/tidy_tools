@@ -11,10 +11,10 @@ from loguru import logger
 from pyspark.errors import PySparkException
 from pyspark.sql import DataFrame
 from pyspark.sql import GroupedData
-from tidy_tools import reader
 from tidy_tools.core.selector import ColumnSelector
 from tidy_tools.frame.context import TidyContext
 from tidy_tools.frame.handler import TidyLogHandler
+from tidy_tools.functions import reader
 
 
 @define

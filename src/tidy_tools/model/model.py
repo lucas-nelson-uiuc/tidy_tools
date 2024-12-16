@@ -15,8 +15,8 @@ from pyspark.sql import Column
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
-from tidy_tools import reader
-from tidy_tools.pipeline import compose
+from tidy_tools.functions import reader
+from tidy_tools.workflow.pipeline import compose
 
 
 PYSPARK_TYPES = MappingProxyType(
