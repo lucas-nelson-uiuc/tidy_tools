@@ -5,7 +5,7 @@ from typing import ContextManager
 import attrs
 from attrs import define
 from attrs import field
-from tidy_tools.frame.handler import TidyLogHandler
+from tidy_tools.dataframe.handler import TidyLogHandler
 
 
 @define

@@ -4,7 +4,7 @@ import tempfile
 import pytest
 from pyspark.sql import SparkSession
 from pyspark.sql import types as T
-from tidy_tools.frame import TidyDataFrame
+from tidy_tools.dataframe import TidyDataFrame
 
 
 @pytest.fixture
