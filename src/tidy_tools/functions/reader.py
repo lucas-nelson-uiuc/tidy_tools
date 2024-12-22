@@ -42,5 +42,4 @@ def read(
     except PySparkException as e:
         logger.error("Reader failed while loading data.")
         raise e
-    finally:
-        return data
+    return data

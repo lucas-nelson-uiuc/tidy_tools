@@ -4,9 +4,7 @@ from typing import Callable
 from pyspark.sql import DataFrame
 
 
-def concat(
-    *data: DataFrame, merge_func: Callable = DataFrame.unionByName, **merge_kwargs: dict
-) -> DataFrame:
+def merge(*data: DataFrame, func: Callable, **kwargs: dict) -> DataFrame:
     """
     Concatenate an arbitrary number of DataFrames into a single DataFrame.
 
@@ -17,10 +15,10 @@ def concat(
     ----------
     *data : DataFrame
         PySpark DataFrame.
-    merge_func : Callable, optional
+    func : Callable, optional
         Reduce function to merge two DataFrames to each other. By default, this
         union resolves by column name.
-    **merge_kwargs : dict, optional
+    **kwargs : dict, optional
         Keyword-arguments for merge function.
 
     Returns
@@ -28,7 +26,19 @@ def concat(
     DataFrame
         Result of merging all `data` objects by `merge_func`.
     """
-    # TODO: include logging mechanism
-    # TODO: include error handling mechanism
-    merge_func = functools.partial(merge_func, **merge_kwargs)
-    return functools.reduce(merge_func, data)
+    func = functools.partial(func, **kwargs)
+    return functools.reduce(func, data)
+
+
+def concat(
+    *data: DataFrame,
+    func: Callable = DataFrame.unionByName,
+    **kwargs: dict,
+):
+    return merge(*data, merge_func=func, **kwargs)
+
+
+def join(
+    *data: DataFrame, func: Callable = DataFrame.join, **kwargs: dict
+) -> DataFrame:
+    return merge(*data, func=func, **kwargs)
