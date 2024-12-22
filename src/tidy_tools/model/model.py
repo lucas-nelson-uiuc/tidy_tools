@@ -233,36 +233,3 @@ class TidyDataModel:
             "validations": cls._validations,
             "fields": attrs.fields(cls),
         }
-
-    @classmethod
-    def format_mapping(cls) -> dict:
-        def format_validation(
-            field: attrs.Attribute, validations: dict[str, Callable]
-        ) -> str:
-            if field.name not in validations:
-                return "No user-defined validations."
-            return validations.get(field.name)(field.name)
-
-        def format_transformation(
-            field: attrs.Attribute, transformations: dict[str, Callable]
-        ) -> str:
-            if field.name not in transformations:
-                return "No user-defined validations."
-            return transformations.get(field.name)
-
-        validations = cls.documentation.get("validations")
-        transformations = cls.documentation.get("transformations")
-
-        return [
-            {
-                "Field Name": field.name,
-                "Field Description": field.metadata.get(
-                    "description", "No description provided"
-                ),
-                "Field Type": field.type.__name__,
-                "Mapping": field.alias,
-                "Validations": format_validation(field, validations),
-                "Transformations": format_transformation(field, transformations),
-            }
-            for field in cls.documentation.get("fields")
-        ]

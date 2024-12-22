@@ -1,34 +1,92 @@
-from pyspark.sql import DataFrame
-from tidy_tools.core.filter import filter_nulls
+from typing import Any
+from typing import Callable
+from typing import Sequence
+
+from pyspark.sql import Column
+from tidy_tools.core import _predicate
 
 
-def validate_nulls(data: DataFrame, *columns: str, **kwargs) -> bool:
+def validate_nulls(**kwargs: dict) -> Callable:
     """
-    Validate column(s) do not contain null values.
+    Return expression checking for null values in column.
 
     Parameters
     ----------
-    data : DataFrame
-        PySpark DataFrame.
-    *columns : str
-        Column(s) to validate from `data`.
     **kwargs : dict
-        Additional arguments for validation function. See `filter_nulls`.
+        Arbitrary number of keyword arguments. See `is_null` for more details.
 
     Returns
     -------
-    bool
-        `True` if there are no nulls in column(s); else, False.
-
-    Raises
-    ------
-    ValueError
-        If column(s) provided do not exist in `data`.
-    AssertionError
-        If null values are detected, an assertion error is raised.
+    Callable
+        Constructs closure that can be called on column(s).
     """
-    missing_columns = set(columns).difference(data.columns)
-    if missing_columns:
-        raise ValueError(f"Columns do not exist: {', '.join(missing_columns)}")
-    nulls = data.filter(filter_nulls(*columns, **kwargs))
-    return nulls.isEmpty()
+
+    def closure(column: str) -> Column:
+        return _predicate.is_null(column, **kwargs)
+
+    return closure
+
+
+def validate_pattern(pattern: str) -> Callable:
+    """
+    Return expression checking for pattern in column.
+
+    Parameters
+    ----------
+    pattern : str
+        Regular expression to check for in column.
+
+    Returns
+    -------
+    Callable
+        Constructs closure that can be called on column(s).
+    """
+
+    def closure(column: str) -> Column:
+        return _predicate.is_regex_match(column, pattern=pattern)
+
+    return closure
+
+
+def validate_membership(elements: Sequence) -> Callable:
+    """
+    Return expression checking for membership in column.
+
+    Parameters
+    ----------
+    elements : Sequence
+        Collection containing value(s) to check for in column.
+
+    Returns
+    -------
+    Callable
+        Constructs closure that can be called on column(s).
+    """
+
+    def closure(column: str) -> Column:
+        return _predicate.is_member(column, elements=elements)
+
+    return closure
+
+
+def validate_range(lower_bound: Any, upper_bound: Any) -> Callable:
+    """
+    Return expression checking for inclusion in column.
+
+    Parameters
+    ----------
+    lower_bound : Any
+        Least value to check for in column.
+    upper_bound : Any
+        Greatest value to check for in column.
+
+    Returns
+    -------
+    Callable
+        Constructs closure that can be called on column(s).
+    """
+
+    def closure(column: str) -> Column:
+        return _predicate.is_between(column, boundaries=(lower_bound, upper_bound))
+
+    return closure

@@ -45,7 +45,7 @@ def _mapper(validator: Callable) -> Column:
                 map(lambda v: _mapper(v)(name=name), validator._validators),
             )
         case _:  # assumes validator is user-defined function
-            return lambda name: validator(F.col(name))
+            return lambda name: validator(name)
 
 
 def validate_field(cls_field: attrs.Attribute, data: DataFrame) -> TidyError:
