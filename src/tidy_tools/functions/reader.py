@@ -5,6 +5,7 @@ from typing import Callable
 from loguru import logger
 from pyspark.errors import PySparkException
 from pyspark.sql import DataFrame
+from tidy_tools.functions.merge import concat
 
 
 def read(
@@ -35,11 +36,9 @@ def read(
 
     read_func = functools.partial(read_func, **read_options)
     try:
-        logger.info(
-            f"Reader: Attempting to load {len(source)} source(s): {', '.join(source)}"
-        )
-        data = functools.reduce(merge_func, map(read_func, source))
-        logger.success(f"Reader: Loaded {data.count():,} rows.")
+        logger.info(f"Attempting to load {len(source)} source(s)")
+        data = concat(map(read_func, source))
+        logger.success(f"Loaded {data.count():,} rows.")
     except PySparkException as e:
         logger.error("Reader failed while loading data.")
         raise e

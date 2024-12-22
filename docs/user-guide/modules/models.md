@@ -168,3 +168,24 @@ specified.
 Additionally, notice that this method also required little to no knowledge of
 the PySpark DataFrame API or Python's `assert` statement, building on the goal
 of separating language-specific features from your business logic.
+
+##### Validators
+
+Similar to the `attrs` package, `tidy-tools` comes with its own set of
+validators. These functions evaluate to filtering expressions that attempt to
+assert some condition is true. Specifically, given a condition, we expect zero
+rows to ***not*** meet said condition.
+
+A list of built-in validators include:
+
+- `validate_nulls`
+
+- `validate_regex`
+
+- `validate_membership`
+
+- `validate_range`
+
+The priority now is to develop native validators that would be helpful for users.
+However, the end goal is to only provide validators that cannot be constructed
+using the `attrs.validators` module.
