@@ -24,7 +24,7 @@ def validate_nulls(**kwargs: dict) -> Callable:
     def closure(column: str) -> Column:
         return _predicate.is_null(column, **kwargs)
 
-    return closure
+    return lambda column: closure(column)
 
 
 def validate_pattern(pattern: str) -> Callable:
