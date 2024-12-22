@@ -25,4 +25,4 @@ jobs:
         run: uv build
 
       - name: Publish
-        run: uv publish --token ${{ secrets.PYPI_TOKEN }} --check-url "https://pypi.org/project/tidy-tools/"
+        run: uv publish --token ${{ secrets.PYPI_TOKEN }} --check-url ""https://pypi.org/simple""
