@@ -101,9 +101,9 @@ class TidyDataModel:
         DataFrame
             Single DataFrame containing data from all source(s) coerced according to class schema.
         """
-        cls.document("_source", source)
         read_func = functools.partial(read_func, schema=cls.schema(), **read_options)
         data = reader.read(*source, read_func=read_func)
+        assert isinstance(data, DataFrame)
         process = cls.tidy()
         return process(data)
 
@@ -212,24 +212,3 @@ class TidyDataModel:
                 else error.data
             )
             data.limit(limit).show()
-
-    @classmethod
-    def document(cls, attribute, value) -> dict:
-        if hasattr(cls, attribute):
-            attr = getattr(cls, attribute)
-            if isinstance(value, dict):
-                value |= attr
-        setattr(cls, attribute, value)
-
-    @classmethod
-    @property
-    def documentation(cls) -> dict:
-        # return cls._documentation
-        return {
-            "name": cls.__name__,
-            "description": cls.__doc__,
-            "sources": cls._source,
-            "transformations": cls._transformations,
-            "validations": cls._validations,
-            "fields": attrs.fields(cls),
-        }
