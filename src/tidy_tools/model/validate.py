@@ -29,7 +29,7 @@ def _mapper(validator: Callable) -> Column:
         case "_InValidator":
             return lambda name: F.col(name).isin(validator.options)
         case "_MatchesReValidator":
-            return lambda name: F.col(name).rlike(validator.pattern)
+            return lambda name: F.col(name).rlike(validator.pattern.pattern)
         case "_MinLengthValidator":
             return lambda name: operator.ge(F.length(F.col(name)), validator.min_length)
         case "_MaxLengthValidator":

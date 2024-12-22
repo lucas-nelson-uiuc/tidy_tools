@@ -1,3 +1,4 @@
+import operator
 from typing import Any
 from typing import Callable
 from typing import Sequence
@@ -6,14 +7,14 @@ from pyspark.sql import Column
 from tidy_tools.core import _predicate
 
 
-def validate_nulls(**kwargs: dict) -> Callable:
+def validate_nulls(_defaults: tuple[str] = (r"\s*", r"\bN/A\b")) -> Callable:
     """
     Return expression checking for null values in column.
 
     Parameters
     ----------
-    **kwargs : dict
-        Arbitrary number of keyword arguments. See `is_null` for more details.
+    _defaults : tuple[str]
+        Default values representing null. By default, checks for whitespace values and "N/A".
 
     Returns
     -------
@@ -22,7 +23,7 @@ def validate_nulls(**kwargs: dict) -> Callable:
     """
 
     def closure(column: str) -> Column:
-        return _predicate.is_null(column, **kwargs)
+        return operator.inv(_predicate.is_null(column, _defaults=_defaults))
 
     return closure
 
