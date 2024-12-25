@@ -48,7 +48,21 @@ nav:
   - API Documentation:
     - api/api-reference.md
     - Core:
-      - api/core.md
+      - api/core/core.md
+    - DataFrame:
+      - api/dataframe/context.md
+      - api/dataframe/dataframe.md
+      - api/dataframe/handler.md
+    - Functions:
+      - api/functions/reader.md
+      - api/functions/merge.md
+    - Model:
+      - api/model/model.md
+      - api/model/transform.md
+      - api/model/validate.md
+    - Workflow:
+      - api/workflow/compose.md
+      - api/workflow/pipeline.md
   - Development:
     - development/contribution.md
 
@@ -62,6 +76,7 @@ plugins:
             members_order: source
             separate_signature: true
             filters: ["!^_"]
+            docstring_style: numpy
             docstring_options:
               ignore_init_summary: true
             merge_init_into_class: true
