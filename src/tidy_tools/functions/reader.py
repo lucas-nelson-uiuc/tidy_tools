@@ -22,8 +22,6 @@ def read(
         Arbitrary number of file references.
     read_func : Callable
         Function to load data from source(s).
-    merge_func : Optional[Callable]
-        Function to merge data from sources. Only applied if multiple sources are provided.
     **read_options : dict
         Additional arguments to pass to the read_function.
 
