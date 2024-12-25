@@ -1,1 +1,1 @@
-::: tidy_tools.dataframe.context <!-- markdownlint-disable MD041 -->
+::: tidy_tools.dataframe.context

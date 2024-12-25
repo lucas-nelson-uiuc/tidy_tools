@@ -1,1 +1,1 @@
-::: tidy_tools.workflow.pipeline.compose <!-- markdownlint-disable MD041 -->
+::: tidy_tools.workflow.pipeline.compose

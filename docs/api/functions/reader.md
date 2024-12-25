@@ -1,1 +1,1 @@
-::: tidy_tools.functions.reader <!-- markdownlint-disable MD041 -->
+::: tidy_tools.functions.reader
