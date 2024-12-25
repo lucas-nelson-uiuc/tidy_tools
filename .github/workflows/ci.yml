@@ -24,6 +24,6 @@ jobs:
         #   path: .cache
         #   restore-keys: |
         #     mkdocs-material-
-      - run: pip install --editable tidy_tools
+      - run: pip install --editable .
       - run: pip install mkdocs-material 'mkdocstrings[python]'
       - run: mkdocs gh-deploy --force
