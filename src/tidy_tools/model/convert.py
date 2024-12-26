@@ -7,21 +7,21 @@ from pyspark.sql import types as T
 from tidy_tools.model._utils import get_pyspark_type
 
 
-def transform_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Column:
+def convert_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Column:
     """
-    Transform data according to a class schema.
+    Convert data according to a class schema.
 
     Parameters
     ----------
     cls_field : attrs.Attribute
-        Field to apply transformation function.
+        Field to apply conversion function.
     cls_field_exists : bool
         Whether field exists in data already.
 
     Returns
     -------
     DataFrame
-        Transformed DataFrame.
+        Converted DataFrame.
     """
     if cls_field.default:
         if isinstance(cls_field.default, attrs.Factory):

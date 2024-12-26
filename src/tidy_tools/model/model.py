@@ -11,7 +11,7 @@ from pyspark.sql import types as T
 from tidy_tools.functions import reader
 from tidy_tools.model._utils import get_pyspark_type
 from tidy_tools.model._utils import is_optional
-from tidy_tools.model.transform import transform_field
+from tidy_tools.model.convert import convert_field
 from tidy_tools.model.validate import validate_field
 from tidy_tools.workflow.pipeline import compose
 
@@ -44,7 +44,7 @@ class TidyDataModel:
     @classmethod
     def __preprocess__(cls, data: DataFrame) -> DataFrame:
         """
-        Optional function to apply to data before transformation and validation.
+        Optional function to apply to data before conversion and validation.
 
         Parameters
         ----------
@@ -54,14 +54,14 @@ class TidyDataModel:
         Returns
         -------
         DataFrame
-            Transformed DataFrame.
+            Converted DataFrame.
         """
         return data
 
     @classmethod
     def __postprocess__(cls, data: DataFrame) -> DataFrame:
         """
-        Optional function to apply to data after transformation and validation.
+        Optional function to apply to data after conversion and validation.
 
         Parameters
         ----------
@@ -71,7 +71,7 @@ class TidyDataModel:
         Returns
         -------
         DataFrame
-            Transformed DataFrame.
+            Converted DataFrame.
         """
         return data
 
@@ -83,7 +83,7 @@ class TidyDataModel:
         read_options: dict = dict(),
     ) -> DataFrame:
         """
-        Load data from source(s) and apply processing, transformation, and validation procedures.
+        Load data from source(s) and apply processing, conversion, and validation procedures.
 
         See `TidyDataModel.tidy()` for more details.
 
@@ -107,24 +107,24 @@ class TidyDataModel:
         return process(data)  # TODO: add option to use TidyDataFrame
 
     @classmethod
-    def transform(cls, data: DataFrame):
+    def convert(cls, data: DataFrame):
         """
-        Apply transformation functions to supported fields.
+        Apply conversion functions to supported fields.
 
         Outputs messages to logging handlers.
 
         Parameters
         ----------
         data : DataFrame
-            Object to apply transformation functions.
+            Object to apply conversion functions.
 
         Returns
         -------
         DataFrame
-            Transformed data.
+            Converted data.
         """
         queue = {
-            cls_field: transform_field(
+            cls_field: convert_field(
                 cls_field=cls_field, cls_field_exists=cls_field.alias in data.columns
             )
             for cls_field in attrs.fields(cls)
@@ -175,7 +175,7 @@ class TidyDataModel:
 
         If present, the methods are executed in the following order:
             - pre-processing
-            - transformations
+            - conversions
             - validations
             - post-processing
 
@@ -185,8 +185,12 @@ class TidyDataModel:
             Function to call listed methods.
         """
         return compose(
-            cls.__preprocess__, cls.transform, cls.validate, cls.__postprocess__
+            cls.__preprocess__, cls.convert, cls.validate, cls.__postprocess__
         )
+
+    @classmethod
+    def transform(cls, data: DataFrame) -> DataFrame:
+        return data
 
     @classmethod
     def show_errors(
