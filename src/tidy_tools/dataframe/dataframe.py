@@ -68,7 +68,7 @@ class TidyDataFrame:
         self,
         operation: str = "comment",
         message: str = "no message provided",
-        level: str = "success",
+        level: str = "info",
     ) -> None:
         """
         Log message to handler(s).
