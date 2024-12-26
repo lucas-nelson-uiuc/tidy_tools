@@ -130,9 +130,10 @@ class TidyDataModel:
             for cls_field in attrs.fields(cls)
         }
 
-        return data.withColumns(
-            {cls_field.name: column for cls_field, column in queue.items()}
-        )
+        # return data.withColumns(
+        #     {cls_field.name: column for cls_field, column in queue.items()}
+        # )
+        return data.select(*(column for column in queue.values()))
 
     @classmethod
     def validate(cls, data: DataFrame) -> DataFrame:
