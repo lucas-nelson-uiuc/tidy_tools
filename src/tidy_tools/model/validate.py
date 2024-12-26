@@ -6,6 +6,7 @@ import attrs
 from pyspark.sql import Column
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
+from tidy_tools.dataframe import TidyDataFrame
 from tidy_tools.error import TidyError
 
 
@@ -66,7 +67,12 @@ def validate_field(cls_field: attrs.Attribute, data: DataFrame) -> TidyError:
         is returned for further logging.
     """
     validate_func = _mapper(cls_field.validator)
-    invalid_entries = data.filter(operator.inv(validate_func(cls_field.name)))
+    if isinstance(data, TidyDataFrame):
+        invalid_entries = data.filter(
+            operator.inv(validate_func(cls_field.name)), disable=True
+        )
+    else:
+        invalid_entries = data.filter(operator.inv(validate_func(cls_field.name)))
     try:
         assert invalid_entries.isEmpty()
         error = None

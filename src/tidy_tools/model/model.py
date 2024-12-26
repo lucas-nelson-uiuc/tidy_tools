@@ -8,7 +8,6 @@ from loguru import logger
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
-from tidy_tools.dataframe import TidyDataFrame
 from tidy_tools.functions import reader
 from tidy_tools.model._utils import get_pyspark_type
 from tidy_tools.model._utils import is_optional
@@ -82,7 +81,6 @@ class TidyDataModel:
         *source: str,
         read_func: Callable,
         read_options: dict = dict(),
-        use_tidy: bool = False,
     ) -> DataFrame:
         """
         Load data from source(s) and apply processing, transformation, and validation procedures.
@@ -97,9 +95,6 @@ class TidyDataModel:
             Function to load data from source(s).
         read_options : dict
             Keyword arguments to pass to `read_func`.
-        use_tidy : bool
-            Whether to use TidyDataFrame as base class for all DataFrame
-            objects.
 
         Returns
         -------
@@ -108,11 +103,8 @@ class TidyDataModel:
         """
         read_func = functools.partial(read_func, schema=cls.schema(), **read_options)
         data = reader.read(*source, read_func=read_func)
-        assert isinstance(data, DataFrame)
         process = cls.tidy()
-        data = TidyDataFrame(data) if use_tidy else data
-        result = process(data)
-        return result._data if use_tidy else result
+        return process(data)  # TODO: add option to use TidyDataFrame
 
     @classmethod
     def transform(cls, data: DataFrame):
