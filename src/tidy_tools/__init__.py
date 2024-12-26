@@ -5,7 +5,7 @@ from tidy_tools.functions import merge
 from tidy_tools.functions import reader
 
 __all__ = ["reader", "merge"]
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 
 LOG_FORMAT: str = "{time:HH:mm:ss} | <level>{level:<8}</level> | {message}"
