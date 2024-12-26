@@ -23,6 +23,12 @@ def convert_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Column:
     DataFrame
         Converted DataFrame.
     """
+    if not cls_field.default:
+        if not cls_field_exists:
+            column = F.lit(None).alias(cls_field.alias)
+        else:
+            column = F.col(cls_field.alias)
+
     if cls_field.default:
         if isinstance(cls_field.default, attrs.Factory):
             return_type = typing.get_type_hints(cls_field.default.factory).get("return")
@@ -32,7 +38,7 @@ def convert_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Column:
             assert return_type is Column, "Factory must return a pyspark.sql.Column!"
             column = cls_field.default.factory()
         elif not cls_field_exists:
-            column = F.lit(cls_field.default)
+            column = F.lit(cls_field.default).alias(cls_field.alias)
         else:
             column = F.when(
                 F.col(cls_field.alias).isNull(), cls_field.default
@@ -45,9 +51,9 @@ def convert_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Column:
 
     cls_field_type = get_pyspark_type(cls_field)
     match cls_field_type:
-        case T.DateType():
+        case T.DateType():  # TODO: make use of field.metadata.date_format
             column = column.cast(cls_field_type)
-        case T.TimestampType():
+        case T.TimestampType():  # TODO: make use of field.metadata.date_format
             column = column.cast(cls_field_type)
         case _:
             column = column.cast(cls_field_type)
