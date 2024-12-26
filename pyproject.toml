@@ -1,6 +1,6 @@
 [project]
 name = "tidy-tools"
-version = "0.3.0"
+version = "0.3.1"
 description = "Declarative programming for PySpark workflows."
 readme = "README.md"
 requires-python = ">=3.10"
