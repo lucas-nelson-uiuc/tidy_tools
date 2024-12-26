@@ -58,7 +58,7 @@ nav:
       - api/functions/merge.md
     - Model:
       - api/model/model.md
-      - api/model/transform.md
+      - api/model/convert.md
       - api/model/validate.md
     - Workflow:
       - api/workflow/compose.md

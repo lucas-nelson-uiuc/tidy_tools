@@ -1,7 +1,7 @@
 # Models
 
 Tidy Tools prioritizes development around the `TidyDataFrame` module. However,
-not all workflows require such a hands-on approach, where all transformations
+not all workflows require such a hands-on approach, where all conversions
 and validations are applied directly on/through the data. Instead, what if you
 could reduce these operations to their barest form, abstracting the PySpark
 DataFrame API out of your business logic?
@@ -25,19 +25,19 @@ class building package.
 
 All data workflows incorporate the following principals to various degrees:
 
-- **Transformations**: manipulating data into different shapes
+- **Conversions**: manipulating data into different shapes
 
 - **Validations**: asserting expectations of your data
 
 As we will see below, `TidyDataFrame` - just like the Pyspark DataFrame -
-greatly simplifies the transformation workflow by incorporating logging
+greatly simplifies the conversion workflow by incorporating logging
 messages. However, it falls short in the validation aspect, an area that
 `TidyDataModel` thrives in. Let's observe both below.
 
-#### Transformations
+#### conversions
 
 Let's use the following example based on the California Housing market
-dataset. We must perform following transformations:
+dataset. We must perform following conversions:
 
 - Convert `latitude` and `longitude` to float types.
 
@@ -75,7 +75,7 @@ def convert_fx(currency: str) -> Callable:
 # load data
 spark_data = spark.read.csv("california_housing.csv")
 
-# apply transformations with TidyDataFrame
+# apply conversions with TidyDataFrame
 tidy_data = (
     TidyDataFrame(spark_data)
     .withColumns({
@@ -85,7 +85,7 @@ tidy_data = (
     .withColumn("median_income", convert_fx(currency="CAD")("median_income"))
 )
 
-# apply transformations with TidyDataModel
+# apply conversions with TidyDataModel
 @define
 class CaliforniaHousing(TidyDataModel):
     longitude: float
@@ -105,7 +105,7 @@ Using `TidyDataFrame`, we can easily address all requirements using PySpark's
 DataFrame API (with the added bonus of line-by-line logging messages). However,
 notice that `TidyDataModel` can also perform the task in a syntax that does not
 *explicitly* rely on the PySpark DataFrame API. Simply specify what needs to be
-transformed and nothing more.
+converted and nothing more.
 
 Addressing the elephant in the room, `TidyDataModel` will *always* require more
 setup than `TidyDataFrame`. This is because a data model should represent a
@@ -114,7 +114,7 @@ and should not incorporate by default.
 
 #### Validations
 
-Our client is happy with the transformations, but they want to be sure that the
+Our client is happy with the conversions, but they want to be sure that the
 data meets their strict requirements. Let's try to validate the following:
 
 - `latitude` is between (-90, 90) degrees
@@ -122,7 +122,7 @@ data meets their strict requirements. Let's try to validate the following:
 - `longitude` is between (-180, 180) degrees
 
 ```python
-# apply transformations, validations with TidyDataFrame
+# apply conversions, validations with TidyDataFrame
 tidy_data = (
     TidyDataFrame(spark_data)
     .withColumns({
@@ -134,7 +134,7 @@ tidy_data = (
 assert tidy_data.filter(~F.col("latitude").between(-90, 90)).isEmpty()
 assert tidy_data.filter(~F.col("longitude").between(-180, 180)).isEmpty()
 
-# apply transformations, validations with TidyDataModel
+# apply conversions, validations with TidyDataModel
 def validate_range(column: Column, lower: int, upper: int) -> Column:
     return column.between(lower, upper)
 
@@ -156,11 +156,11 @@ tidy_data = CaliforniaHousing.read("california_housing.csv")
 Notice how the `TidyDataFrame` workflow now has two rogue `assert` statements
 at the end of the workflow. As of right now, should either condition fail, the
 code comes to a halt and the user must debug the error themselves. This task
-can be extremely tedious and lost in the midst of all your transformation
+can be extremely tedious and lost in the midst of all your conversion
 operations.
 
 In contrast, `TidyDataModel` encapsulates the validation logic in the same
-location as the transformation logic. We already had a clear picture of our
+location as the conversion logic. We already had a clear picture of our
 data since the model details all the fields we expect. Now we have an even
 clearer picture of what is and is not true of our data for the validations we
 specified.
