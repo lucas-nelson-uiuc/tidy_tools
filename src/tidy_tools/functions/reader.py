@@ -11,7 +11,6 @@ from tidy_tools.functions.merge import concat
 def read(
     *source: str | Path,
     read_func: Callable,
-    merge_func: Callable = DataFrame.unionByName,
     **read_options: dict,
 ) -> DataFrame:
     """
@@ -23,8 +22,6 @@ def read(
         Arbitrary number of file references.
     read_func : Callable
         Function to load data from source(s).
-    merge_func : Optional[Callable]
-        Function to merge data from sources. Only applied if multiple sources are provided.
     **read_options : dict
         Additional arguments to pass to the read_function.
 
@@ -37,7 +34,7 @@ def read(
     read_func = functools.partial(read_func, **read_options)
     try:
         logger.info(f"Attempting to load {len(source)} source(s)")
-        data = concat(map(read_func, source))
+        data = concat(*map(read_func, source))
         logger.success(f"Loaded {data.count():,} rows.")
     except PySparkException as e:
         logger.error("Reader failed while loading data.")

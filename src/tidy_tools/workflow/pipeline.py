@@ -24,16 +24,16 @@ def pipe(instance: Any, *functions: Callable) -> Any:
     --------
     >>> # works with unary function
     >>> add_two = lambda x: x + 2
-
+    >>>
     >>> # works with partial functions
     >>> add_n = lambda x, n: x + n
-
+    >>>
     >>> # works with closures
     >>> def add_n(n: int) -> Callable:
     >>>     def closure(x):
     >>>         return x + n
     >>>     return closure
-
+    >>>
     >>> result = pipe(12, add_two, add_n(10), add_n(-4))
     >>> assert result == 20
     """
@@ -61,16 +61,16 @@ def compose(*functions: Callable) -> Callable:
     --------
     >>> # works with unary function
     >>> add_two = lambda x: x + 2
-
+    >>>
     >>> # works with partial functions
     >>> add_n = lambda x, n: x + n
-
+    >>>
     >>> # works with closures
     >>> def add_n(n: int) -> Callable:
     >>>     def closure(x):
     >>>         return x + n
     >>>     return closure
-
+    >>>
     >>> summation = compose(add_two, add_n(10), add_n(-4))
     >>> assert summation(12) == 20
     """

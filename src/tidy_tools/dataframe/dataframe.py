@@ -19,7 +19,23 @@ from tidy_tools.functions import reader
 
 @define
 class TidyDataFrame:
-    """Enable tidy operations on a PySpark DataFrame. Context is a dictionary acting as a log."""
+    """
+    Enable tidy operations on a PySpark DataFrame with optional context.
+
+    TidyDataFrame is a PySpark DataFrame with built-in logging functionality.
+    Directly inspired by the [tidylog](https://github.com/elbersb/tidylog)
+    project, TidyDataFrame decorates common DataFrame methods to detail the
+    impact of said method in real-time. Combined with the context to control
+    other behavior (e.g. disabling displays, logging to multiple handlers),
+    TidyDataFrame is the all-in-one logging solution for PySpark workflows.
+
+    Attributes
+    ----------
+    _data : DataFrame
+        PySpark DataFrame object to perform tidy operations.
+    _context : dict, optional
+        Context to control execution of TidyDataFrame.
+    """
 
     _data: DataFrame = field(validator=validators.instance_of((DataFrame, GroupedData)))
     _context: Optional[dict] = field(factory=TidyContext)
@@ -97,13 +113,55 @@ class TidyDataFrame:
         return decorator
 
     @classmethod
-    def read(
+    def load(
         cls,
         *source: str | Path,
         context: Optional[TidyContext] = None,
         read_func: Optional[Callable] = None,
-        **read_options: dict,
+        read_options: Optional[dict] = dict(),
     ) -> "TidyDataFrame":
+        """
+        Create TidyDataFrame directly from source(s).
+
+        Parameters
+        ----------
+        *source : str | Path
+            Arbitrary number of file references containing data.
+        context : TidyContext, optional
+            Additional context parameters to pass.
+        read_func : Callable, optional
+            Function for reading data from source(s).
+        read_options : dict, optional
+            Additional parameters to pass to `read_func`.
+
+        Returns
+        -------
+        TidyDataFrame
+            Instance of TidyDataFrame loaded from source(s) with additional
+            parameters instructing read-in and/or context.
+
+        Examples
+        --------
+        >>> # load data from a single source
+        >>> tidy_data = TidyDataFrame.load("path/to/data.csv")
+        >>>
+        >>> # load data from multiple sources
+        >>> tidy_data = TidyDataFrame.load(
+        >>>     "path/to/data.csv",
+        >>>     "path/to/another/file.txt",
+        >>>     "path/to/the/final/file.xlsx",
+        >>> )
+        >>>
+        >>> # load data with context
+        >>> tidy_data = TidyDataFrame.load(..., context=TidyContext(...))
+        >>>
+        >>> # load data with read-in instructions
+        >>> tidy_data = TidyDataFrame.load(
+        >>>     ...,
+        >>>     read_func=spark.read.csv,
+        >>>     read_options={"header": "true"}
+        >>> )
+        """
         try:
             read_func = functools.partial(read_func, **read_options)
             data = reader.read(*source, read_func=read_func)
