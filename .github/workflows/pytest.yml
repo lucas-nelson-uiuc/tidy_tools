@@ -24,5 +24,6 @@ jobs:
             pip install pyspark==${{ matrix.pyspark-version }} attrs==${{ matrix.attrs-version }}
             pip install --upgrade pytest loguru pandas pyarrow setuptools
             pip install --editable .
+            export PYARROW_IGNORE_TIMEZONE="1"
       - name: Run testing suite
         run: python -m pytest tests
