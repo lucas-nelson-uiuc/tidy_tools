@@ -128,7 +128,7 @@ def filter_elements(
 def filter_range(
     self: DataFrame,
     *columns: ColumnReference,
-    boundaries: Sequence[Any, Any],
+    boundaries: Sequence[Any],
     strict: bool = False,
     invert: bool = False,
 ) -> DataFrame:  # numpydoc ignore=PR09
@@ -142,7 +142,7 @@ def filter_range(
     *columns : ColumnReference
         Arbitrary number of column references. All columns must exist in `self`. If none
         are passed, all columns are used in filter.
-    boundaries : Sequence[Any, Any]
+    boundaries : Sequence[Any]
         Bounds of range. Must be of same type and in ascending order.
     strict : bool
         Should condition be true for all column(s)?
