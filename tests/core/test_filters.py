@@ -59,8 +59,8 @@ class TestFilters:
             ),
         )
         assertDataFrameEqual(
-            ~(
-                eits_data.filter(
+            eits_data.filter(
+                ~(
                     F.col("title").rlike(TEST_PATTERN)
                     | F.col("comments").rlike(TEST_PATTERN)
                 )
@@ -70,8 +70,8 @@ class TestFilters:
             ),
         )
         assertDataFrameEqual(
-            ~(
-                eits_data.filter(
+            eits_data.filter(
+                ~(
                     F.col("title").rlike(TEST_PATTERN)
                     & F.col("comments").rlike(TEST_PATTERN)
                 )
@@ -113,8 +113,8 @@ class TestFilters:
             ),
         )
         assertDataFrameEqual(
-            ~(
-                eits_data.filter(
+            eits_data.filter(
+                ~(
                     F.col("formats").isin(TEST_ELEMENTS)
                     | F.col("producer").isin(TEST_ELEMENTS)
                 )
@@ -124,8 +124,8 @@ class TestFilters:
             ),
         )
         assertDataFrameEqual(
-            ~(
-                eits_data.filter(
+            eits_data.filter(
+                ~(
                     F.col("formats").isin(TEST_ELEMENTS)
                     & F.col("producer").isin(TEST_ELEMENTS)
                 )
