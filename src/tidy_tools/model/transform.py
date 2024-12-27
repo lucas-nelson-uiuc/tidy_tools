@@ -7,6 +7,7 @@ from typing import Sequence
 import attrs
 from attrs import converters
 from attrs import validators
+from loguru import logger
 
 
 def remove_none(*elements: Any) -> Sequence:
@@ -62,6 +63,12 @@ def transform_model(reference) -> Callable:
         fields_transformed = []
 
         for fld in fields:
+            if fld.name not in attrs.fields_dict(cls):
+                logger.warning(
+                    "Ignoring `{fld.name}` - not defined in inherited model."
+                )
+                continue
+
             if hasattr(
                 reference, fld.alias or ""
             ):  # empty string to prevent error in hasattr
