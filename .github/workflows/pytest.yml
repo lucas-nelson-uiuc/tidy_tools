@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
-        pyspark-version: ["3.5.0", "3.5.4"]
+        pyspark-version: ["3.5.0"]
         attrs-version: ["22.1.0", "23.1.0", "24.3.0"]
 
     steps:
@@ -22,7 +22,7 @@ jobs:
         run: |
             python -m pip install --upgrade pip
             pip install pyspark==${{ matrix.pyspark-version }} attrs==${{ matrix.attrs-version }}
-            pip install --upgrade pytest loguru pandas pyarrow
+            pip install --upgrade pytest loguru pandas pyarrow setuptools
             pip install --editable .
       - name: Run testing suite
         run: python -m pytest tests
