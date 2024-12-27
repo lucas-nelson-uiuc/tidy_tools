@@ -5,9 +5,9 @@ description = "Declarative programming for PySpark workflows."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "attrs>=24.2.0",
+    "attrs>=22.1.0",
     "loguru>=0.7.3",
-    "pyspark>=3.5",
+    "pyspark>=3.5.0,<3.6",
 ]
 
 [build-system]

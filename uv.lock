@@ -158,9 +158,9 @@ lint = [
 
 [package.metadata]
 requires-dist = [
-    { name = "attrs", specifier = ">=24.2.0" },
+    { name = "attrs", specifier = ">=22.1.0" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pyspark", specifier = ">=3.5" },
+    { name = "pyspark", specifier = ">=3.5.0,<3.6" },
 ]
 
 [package.metadata.requires-dev]
