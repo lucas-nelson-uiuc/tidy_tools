@@ -25,5 +25,6 @@ jobs:
             pip install --upgrade pytest loguru pandas pyarrow setuptools
             pip install --editable .
             export PYARROW_IGNORE_TIMEZONE="1"
+            export SPARK_HOME=/usr/local/spark
       - name: Run testing suite
         run: python -m pytest tests
