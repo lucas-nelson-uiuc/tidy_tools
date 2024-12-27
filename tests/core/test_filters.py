@@ -154,8 +154,7 @@ class TestFilters:
             filter_range(
                 eits_data,
                 "release_date",
-                lower_bound=TEST_LOWER_BOUND,
-                upper_bound=TEST_UPPER_BOUND,
+                boundaries=(TEST_LOWER_BOUND, TEST_UPPER_BOUND),
             ).count()
             == eits_data.filter(
                 F.col("release_date").between(TEST_LOWER_BOUND, TEST_UPPER_BOUND)
