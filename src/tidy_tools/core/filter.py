@@ -35,7 +35,10 @@ def filter_nulls(
         Observations that represent null across all column(s).
     """
     query = construct_query(
-        *columns, predicate=_predicate.is_null, strict=strict, invert=invert
+        *columns or self.columns,
+        predicate=_predicate.is_null,
+        strict=strict,
+        invert=invert,
     )
     return self.filter(query)
 
@@ -74,7 +77,7 @@ def filter_regex(
     except Exception as e:
         print(f"Cannot compile {pattern=} as regular expression. Raises: '{e}'")
     query = construct_query(
-        *columns,
+        *columns or self.columns,
         predicate=_predicate.is_regex_match,
         pattern=pattern,
         strict=strict,
@@ -113,7 +116,7 @@ def filter_elements(
         Observations that exist within range across all column(s).
     """
     query = construct_query(
-        *columns,
+        *columns or self.columns,
         predicate=_predicate.is_member,
         elements=elements,
         strict=strict,
@@ -125,8 +128,7 @@ def filter_elements(
 def filter_range(
     self: DataFrame,
     *columns: ColumnReference,
-    lower_bound: Any,
-    upper_bound: Any,
+    boundaries: Sequence[Any, Any],
     strict: bool = False,
     invert: bool = False,
 ) -> DataFrame:  # numpydoc ignore=PR09
@@ -140,10 +142,8 @@ def filter_range(
     *columns : ColumnReference
         Arbitrary number of column references. All columns must exist in `self`. If none
         are passed, all columns are used in filter.
-    lower_bound : Any
-        Lower bound of range.
-    upper_bound : Any
-        Upper bound of range.
+    boundaries : Sequence[Any, Any]
+        Bounds of range. Must be of same type and in ascending order.
     strict : bool
         Should condition be true for all column(s)?
     invert : bool
@@ -154,16 +154,18 @@ def filter_range(
     DataFrame
         Observations that exist within range across all column(s).
     """
-    assert (
-        type(lower_bound) is type(upper_bound)
-    ), f"Bounds must have same type! Received ({type(lower_bound)=}, {type(upper_bound)=})"
-    assert (
-        lower_bound < upper_bound
-    ), f"Lower bound must be less than upper bound! Received ({lower_bound=}, {upper_bound=})"
+    try:
+        lower_bound, upper_bound = boundaries
+        assert type(lower_bound) is type(upper_bound)
+        assert lower_bound < upper_bound
+    except AssertionError:
+        raise AssertionError(
+            f"Boundaries must be same type and in ascending order. Received ({lower_bound=} ({type(lower_bound)}), {upper_bound=} ({type(upper_bound)}))"
+        )
     query = construct_query(
-        *columns,
+        *columns or self.columns,
         predicate=_predicate.is_between,
-        boundaries=(lower_bound, upper_bound),
+        boundaries=boundaries,
         strict=strict,
         invert=invert,
     )
