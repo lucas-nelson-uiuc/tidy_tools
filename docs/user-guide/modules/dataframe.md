@@ -1,13 +1,25 @@
-# TidyDataFrame
+# DataFrame
 
-Tidy Tools initially started out as a simple Python script for `TidyDataFrame`.
+The `tidy_tools.dataframe` module offers the most direct extension of the PySpark
+DataFrame by offering a wrapper called `TidyDataFrame` - the initial motivation for
+Tidy Tools.
+
+This module attempts to achieve the following goals:
+
+- Promoting user-friendly features:
+    - Built-in logging (inspired by `tidylog` in R)
+    - Contextual evaluation
+- Incorporting the rest of the Tidy Tools ecosystem
+
+## TidyDataFrame
+
 Starting out as a basic Python class, TidyDataFrame has evolved from a dataframe
 with built-in logging to providing functional recipes to handling user-specific
 configurations and more. All methods provided in Tidy Tools are supported by
 `TidyDataFrame` as it is designed with this class in mind.
 
 Let's look at an example of how to use `TidyDataFrame` compared to a PySpark
-DataFrame:
+DataFrame.
 
 ## Entering and Exiting TidyDataFrame
 

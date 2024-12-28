@@ -1,4 +1,4 @@
-<h1 style="text-align:center">Functional PySpark Workflows</h1>
+<h1 style="text-align:center"><b>Functional PySpark Workflows</b></h1>
 <div align="center">
   <!-- PyPI Latest Release -->
   <a href="https://pypi.org/project/tidy-tools/">
@@ -24,18 +24,21 @@ The package is an extension of the PySpark API and can be easily integrated into
 
 ---
 
+## Key Features
+
+- **Functional**: Packages verbose queries into iterative, declarative expressions.
+- **Feature-Rich**: Extends the DataFrame API to include user-friendly features.
+- **Experimental**: Continuously finding new ways of improving PySpark workflows.
+
+---
+
 ## Philosophy
 
-The goal of Tidy Tools is to provide an extension of the PySpark DataFrame API that:
+The goal of Tidy Tools is to provide an extension of the PySpark DataFrame API that promotes
+declarative workflows.
 
-- Utilizes all available cores on your machine.
-- Optimizes queries to reduce unneeded work/memory allocations.
-- Handles datasets much larger than your available RAM.
-- A consistent and predictable API.
-- Adheres to a strict schema (data-types should be known before running the query).
-
-On top of the existing API, Tidy Tools provides recipes for converting PySpark expressions
-into tidy expressions.
+On top of the proposed API, Tidy Tools offers experimental solutions that cannot be *easily*
+replicated using the PySpark API. Continue reading to learn more.
 
 ---
 
@@ -49,4 +52,4 @@ All contributions are welcome, from reporting bugs to implementing new features.
 ## License
 
 This project is licensed under the terms of the
-[MIT license](https://github.com/pola-rs/polars/blob/main/LICENSE).
+[MIT license](https://github.com/lucas-nelson-uiuc/tidy_tools/LICENSE).
