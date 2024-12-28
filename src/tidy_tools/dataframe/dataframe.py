@@ -1,4 +1,5 @@
 import functools
+import inspect
 from pathlib import Path
 from typing import Callable
 from typing import Optional
@@ -372,6 +373,9 @@ class TidyDataFrame:
         TidyDataFrame
             Transformed data.
         """
+        docstring = inspect.getdoc(func)
+        if docstring:
+            self._log(operation=func.__name__, message=inspect.cleandoc(docstring))
         result = func(self, *args, **kwargs)
         return TidyDataFrame(result._data, self._context)
 
