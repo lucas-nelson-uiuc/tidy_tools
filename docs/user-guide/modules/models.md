@@ -34,7 +34,7 @@ greatly simplifies the conversion workflow by incorporating logging
 messages. However, it falls short in the validation aspect, an area that
 `TidyDataModel` thrives in. Let's observe both below.
 
-#### conversions
+#### Conversions
 
 Let's use the following example based on the California Housing market
 dataset. We must perform following conversions:
