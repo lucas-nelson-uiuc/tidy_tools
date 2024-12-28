@@ -1,12 +1,12 @@
 [project]
 name = "tidy-tools"
-version = "0.3.1"
+version = "0.3.2"
 description = "Declarative programming for PySpark workflows."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "attrs>=22.1.0",
-    "loguru>=0.7.3",
+    "attrs",
+    "loguru",
     "pyspark>=3.5.0,<3.6",
 ]
 
