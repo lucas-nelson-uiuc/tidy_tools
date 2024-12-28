@@ -373,9 +373,11 @@ class TidyDataFrame:
         TidyDataFrame
             Transformed data.
         """
+        # include docstring in logs if provided
         docstring = inspect.getdoc(func)
         if docstring:
             self._log(operation=func.__name__, message=inspect.cleandoc(docstring))
+
         result = func(self, *args, **kwargs)
         return TidyDataFrame(result._data, self._context)
 
@@ -396,7 +398,6 @@ class TidyDataFrame:
             Transformed data.
         """
         result = functools.reduce(lambda init, func: init.transform(func), funcs, self)
-
         return TidyDataFrame(result._data, self._context)
 
     def __getattr__(self, attr: str) -> "TidyDataFrame":
