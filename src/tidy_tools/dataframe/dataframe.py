@@ -88,6 +88,10 @@ class TidyDataFrame:
         None
             No output returned since message is logged to handler(s).
         """
+        if not hasattr(logger, level):
+            raise ValueError(
+                f"Logger does not have {level=}. See `loguru.logger` for more details."
+            )
         getattr(logger, level)(f"#> {operation}: {message}")
         return self
 
@@ -309,7 +313,9 @@ class TidyDataFrame:
     ) -> "TidyDataFrame":
         return self.select(*selectors, strict=strict, invert=True)
 
-    @_record(message="removed {self.count() - self.count(result):,} rows")
+    @_record(
+        message="removed {self.count() - self.count(result):,} rows ({self.count(result) / self.count():.1%})"
+    )
     def filter(self, condition) -> "TidyDataFrame":
         result = self._data.filter(condition)
         return TidyDataFrame(result, self._context)
@@ -376,7 +382,10 @@ class TidyDataFrame:
         # include docstring in logs if provided
         docstring = inspect.getdoc(func)
         if docstring:
-            self._log(operation=func.__name__, message=inspect.cleandoc(docstring))
+            self._log(
+                operation="document",
+                message=f"{inspect.cleandoc(docstring)} ({func.__name__})",
+            )
 
         result = func(self, *args, **kwargs)
         return TidyDataFrame(result._data, self._context)
