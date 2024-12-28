@@ -48,7 +48,8 @@ nav:
   - API Documentation:
     - api/api-reference.md
     - Core:
-      - api/core/core.md
+      - api/core/selector.md
+      - api/core/filter.md
     - DataFrame:
       - api/dataframe/context.md
       - api/dataframe/dataframe.md
