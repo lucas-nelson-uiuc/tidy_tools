@@ -4,7 +4,7 @@ from loguru import logger
 from tidy_tools.parser import LOG_FORMAT
 
 
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 
 
 # upon import:
