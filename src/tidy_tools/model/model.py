@@ -1,4 +1,5 @@
 import functools
+import pathlib
 from typing import Callable
 from typing import Iterable
 
@@ -78,7 +79,7 @@ class TidyDataModel:
     @classmethod
     def load(
         cls,
-        *source: str,
+        *source: str | pathlib.Path | DataFrame,
         read_func: Callable,
         read_options: dict = dict(),
     ) -> DataFrame:
@@ -89,7 +90,7 @@ class TidyDataModel:
 
         Parameters
         ----------
-        *source : str
+        *source : str | pathlib.Path | DataFrame
             Arbitrary number of reference(s) to data source(s).
         read_func : Callable
             Function to load data from source(s).
