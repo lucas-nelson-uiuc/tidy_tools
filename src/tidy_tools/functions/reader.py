@@ -1,4 +1,3 @@
-import functools
 from pathlib import Path
 from typing import Callable
 
@@ -9,7 +8,7 @@ from tidy_tools.functions.merge import concat
 
 
 def read(
-    *source: str | Path,
+    *source: str | Path | DataFrame,
     read_func: Callable,
     **read_options: dict,
 ) -> DataFrame:
@@ -18,8 +17,10 @@ def read(
 
     Parameters
     ----------
-    *source : str | Path
-        Arbitrary number of file references.
+    *source : str | Path | DataFrame
+        Arbitrary number of data references. If file-like reference, data will
+        be loaded using `read_func` and optional `read_options`. If DataFrame,
+        data will be returned.
     read_func : Callable
         Function to load data from source(s).
     **read_options : dict
@@ -36,10 +37,27 @@ def read(
         If reading source(s) cannot be performed successfully.
     """
 
-    read_func = functools.partial(read_func, **read_options)
+    def _read_func(source: str | Path | DataFrame) -> DataFrame:
+        """
+        Wrap read function to skip DataFrame instances.
+
+        Parameters
+        ----------
+        source : str | Path | DataFrame
+            Reference to data object.
+
+        Returns
+        -------
+        DataFrame
+            Contents of data object.
+        """
+        if isinstance(source, DataFrame):
+            return source
+        return read_func(source, **read_options)
+
     try:
         logger.info(f"Attempting to load {len(source)} source(s)")
-        data = concat(*map(read_func, source))
+        data = concat(*map(_read_func, source))
         logger.success(f"Loaded {data.count():,} rows.")
     except PySparkException as e:
         logger.error("Reader failed while loading data.")
