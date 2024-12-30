@@ -55,6 +55,17 @@ class TidyLogHandler:
         """
         return pattern
 
+    def summarize(self) -> dict:
+        """
+        Summarize contents at `source`.
+
+        Returns
+        -------
+        dict
+            Statistics of contents at `source`.
+        """
+        return dict()
+
 
 @define(kw_only=True)
 class TidyFileHandler(TidyLogHandler):
