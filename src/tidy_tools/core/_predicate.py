@@ -40,9 +40,29 @@ def is_null(
 
 
 @_reference_column
-def is_regex_match(column: ColumnReference, pattern: str) -> Column:
+def is_substring(column: ColumnReference, substring: str) -> Column:
     """
     Predicate for identifying a substring in a column.
+
+    Parameters
+    ----------
+    column : ColumnReference
+        Reference to PySpark column.
+    substring : str
+        Value to check for in string. Boundary characters.
+
+    Returns
+    -------
+    Column
+        PySpark expression evaluating to boolean.
+    """
+    return column.contains(rf"\b{substring}\b")
+
+
+@_reference_column
+def is_regex_match(column: ColumnReference, pattern: str) -> Column:
+    """
+    Predicate for identifying a regular expression in a column.
 
     Parameters
     ----------

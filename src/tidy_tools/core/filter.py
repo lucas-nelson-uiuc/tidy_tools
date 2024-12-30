@@ -1,5 +1,6 @@
 import re
 from typing import Any
+from typing import Callable
 from typing import Sequence
 
 from pyspark.sql import DataFrame
@@ -15,7 +16,7 @@ def filter_nulls(
     invert: bool = False,
 ) -> DataFrame:  # numpydoc ignore=PR09
     """
-    Keep all observations that represent null across all column(s).
+    Keep all observations that represent null across any/all column(s).
 
     Parameters
     ----------
@@ -32,11 +33,50 @@ def filter_nulls(
     Returns
     -------
     DataFrame
-        Observations that represent null across all column(s).
+        Observations that represent null across any/all column(s).
     """
     query = construct_query(
         *columns or self.columns,
         predicate=_predicate.is_null,
+        strict=strict,
+        invert=invert,
+    )
+    return self.filter(query)
+
+
+def filter_substring(
+    self: DataFrame,
+    *columns: ColumnReference,
+    substring: str,
+    strict: bool = False,
+    invert: bool = False,
+) -> DataFrame:  # numpydoc ignore=PR09
+    """
+    Keep all observations that match the regular expression across any/all column(s).
+
+    Parameters
+    ----------
+    self : DataFrame
+        Object inheriting from PySpark DataFrame.
+    *columns : ColumnReference
+        Arbitrary number of column references. All columns must exist in `self`. If none
+        are passed, all columns are used in filter.
+    substring : str
+        String expression to check.
+    strict : bool
+        Should condition be true for all column(s)?
+    invert : bool
+        Should observations that meet condition be kept (False) or removed (True)?
+
+    Returns
+    -------
+    DataFrame
+        Observations that match the substring across any/all column(s).
+    """
+    query = construct_query(
+        *columns or self.columns,
+        predicate=_predicate.is_substring,
+        substring=substring,
         strict=strict,
         invert=invert,
     )
@@ -51,7 +91,7 @@ def filter_regex(
     invert: bool = False,
 ) -> DataFrame:  # numpydoc ignore=PR09
     """
-    Keep all observations that match the regular expression across all column(s).
+    Keep all observations that match the regular expression across any/all column(s).
 
     Parameters
     ----------
@@ -70,7 +110,7 @@ def filter_regex(
     Returns
     -------
     DataFrame
-        Observations that match the regular expression across all column(s).
+        Observations that match the regular expression across any/all column(s).
     """
     try:
         re.compile(pattern)
@@ -94,7 +134,7 @@ def filter_elements(
     invert: bool = False,
 ) -> DataFrame:  # numpydoc ignore=PR09
     """
-    Keep all observations that exist within elements across all column(s).
+    Keep all observations that exist within elements across any/all column(s).
 
     Parameters
     ----------
@@ -113,7 +153,7 @@ def filter_elements(
     Returns
     -------
     DataFrame
-        Observations that exist within range across all column(s).
+        Observations that exist within range across any/all column(s).
     """
     query = construct_query(
         *columns or self.columns,
@@ -133,7 +173,7 @@ def filter_range(
     invert: bool = False,
 ) -> DataFrame:  # numpydoc ignore=PR09
     """
-    Keep all observations that exist within range across all column(s).
+    Keep all observations that exist within range across any/all column(s).
 
     Parameters
     ----------
@@ -152,7 +192,7 @@ def filter_range(
     Returns
     -------
     DataFrame
-        Observations that exist within range across all column(s).
+        Observations that exist within range across any/all column(s).
 
     Raises
     ------
@@ -175,5 +215,47 @@ def filter_range(
         boundaries=boundaries,
         strict=strict,
         invert=invert,
+    )
+    return self.filter(query)
+
+
+def filter_custom(
+    self: DataFrame,
+    *columns: ColumnReference,
+    predicate: Callable,
+    strict: bool = False,
+    invert: bool = False,
+    **kwargs: dict,
+) -> DataFrame:  # numpydoc ignore=PR09
+    """
+    Keep all observations that match the regular expression across any/all column(s).
+
+    Parameters
+    ----------
+    self : DataFrame
+        Object inheriting from PySpark DataFrame.
+    *columns : ColumnReference
+        Arbitrary number of column references. All columns must exist in `self`. If none
+        are passed, all columns are used in filter.
+    predicate : Callable
+        Function returning PySpark Column for filtering expression.
+    strict : bool
+        Should condition be true for all column(s)?
+    invert : bool
+        Should observations that meet condition be kept (False) or removed (True)?
+    **kwargs : dict, optional
+        Additional options to pass to `predicate`.
+
+    Returns
+    -------
+    DataFrame
+        Observations that match the substring across any/all column(s).
+    """
+    query = construct_query(
+        *columns or self.columns,
+        predicate=predicate,
+        strict=strict,
+        invert=invert,
+        **kwargs,
     )
     return self.filter(query)
