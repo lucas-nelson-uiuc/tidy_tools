@@ -6,6 +6,7 @@ from attrs import define
 from attrs import field
 from loguru import logger
 from tidy_tools.parser import LOG_FORMAT
+from tidy_tools.parser import LOG_PATTERN
 
 
 @define
@@ -21,6 +22,8 @@ class TidyLogHandler:
         Minimum level to trace in logs. See `loguru` for more details.
     format : str
         Template used for logged messages.
+    pattern : str
+        Template used for parsing logged messages.
     diagnose : bool
         Whether the exception trace should display the variables values
         to eases the debugging.
@@ -34,6 +37,7 @@ class TidyLogHandler:
     sink: str | Path | TextIO = field(default=sys.stderr)
     level: str = field(default="INFO")
     format: str = field(default=LOG_FORMAT)
+    pattern: str = field(default=LOG_PATTERN)
     diagnose: bool = field(default=False)
     catch: bool = field(default=False)
 

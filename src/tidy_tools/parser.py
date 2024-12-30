@@ -49,7 +49,7 @@ def construct_pattern(*components: Regex, separator: str) -> str:
 
 # define regular expressions used in logging statements
 SEPARATOR = Regex("separator", r"\s+\|\s+")
-TIME = Regex("time", r"[\d:]+")
+TIME = Regex("time", r"\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}")
 LEVEL = Regex("level", r"[a-zA-Z]+")
 
 # construct CONTENT as product of OPERATION and MESSAGE (as defined in TidyDataFrame)
@@ -60,5 +60,5 @@ CONTENT = Regex(
 )
 
 # define format, pattern for loguru-based functions
-LOG_FORMAT: str = "{time:HH:mm:ss} | <level>{level:<8}</level> | {message}"
+LOG_FORMAT: str = "{time:YYYY-MM-DD HH:mm:ss} | <level>{level:<8}</level> | {message}"
 LOG_PATTERN: str = construct_pattern(TIME, LEVEL, CONTENT, separator=SEPARATOR.pattern)
