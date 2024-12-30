@@ -1,11 +1,10 @@
 import json
-from contextlib import contextmanager
 from pathlib import Path
-from typing import ContextManager
 
 import attrs
 from attrs import define
 from attrs import field
+from loguru import logger
 from tidy_tools.dataframe.handler import TidyLogHandler
 
 
@@ -85,48 +84,37 @@ class TidyContext:
                 context = json.load(fp)
         return TidyContext(**context)
 
-    def save(self) -> dict:
+    def save(self, filepath: str | Path | None = None) -> dict | None:
         """
-        Save attributes as serialized JSON object.
-
-        Returns
-        -------
-        dict
-            Attributes of `TidyContext` instance as dictionary.
-        """
-        return attrs.asdict(self)
-
-    def save_to_file(self, filepath: str | Path) -> None:
-        """
-        Save attributes to `filepath`.
+        Save attributes as serialized object.
 
         Parameters
         ----------
-        filepath : str | Path
-            File to save attributes. This file can be loaded using the
-            `TidyContext.load(<filepath>)` method to create copies of the same
-            instance.
+        filepath : str | Path | None
+            Optional path to save context configuration. This file can be
+            loaded using the `TidyContext.load(<filepath>)` method to
+            deterministically create copies of the same instance.
 
         Returns
         -------
-        None
-            Stores output to file.
+        dict | None
+            If no `filepath` is provided, the attributes of `TidyContext`
+            instance as dictionary. Else, write configurations to `filepath`.
+
+        Raises
+        ------
+        Exception
+            If there is an error while writing to `filepath`.
         """
+        context = attrs.asdict(self)
+        if filepath is None:
+            return context
         if not isinstance(filepath, Path):
             filepath = Path(filepath).resolve()
-        filepath.write_text(self.save())
-
-
-@contextmanager
-def tidyworkflow(save: str | bool = False, **parameters) -> ContextManager:
-    context = TidyContext(**parameters)
-    try:
-        yield context
-    finally:
-        if not save:
-            pass
-        if isinstance(save, bool):
-            return attrs.asdict(context)
-        if isinstance(save, str):
-            file = Path(save).resolve()
-            file.write_text(attrs.asdict(context))
+        try:
+            with open(filepath, "w") as fp:
+                json.dump(self.save(), fp)
+            logger.success(f"Context stored at: {filepath}")
+        except Exception as e:
+            logger.error(f"Error writing context to: {filepath}")
+            raise e

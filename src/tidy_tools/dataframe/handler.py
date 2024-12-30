@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 from typing import TextIO
 
+import attrs
 from attrs import define
 from attrs import field
 from loguru import logger
@@ -54,6 +55,17 @@ class TidyLogHandler:
             Pattern for logging instance.
         """
         return pattern
+
+    def save(self) -> dict:
+        """
+        Return configurations as dict.
+
+        Returns
+        -------
+        dict
+            Collection of attributes for context.
+        """
+        return attrs.asdict(self)
 
     def summarize(self) -> dict:
         """

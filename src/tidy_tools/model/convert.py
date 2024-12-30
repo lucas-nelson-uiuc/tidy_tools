@@ -58,7 +58,7 @@ def convert_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Column:
                 column = F.to_date(column, format=date_format)
             else:
                 logger.warning(
-                    f"No `format` provided for {cls_field.name}. Please add `field(..., metadata={{'format': ...}}) and rerun."
+                    f"No `format` provided for {cls_field.name}. Please add `field(..., metadata={{'format': ...}})` and rerun."
                 )
                 column = column.cast(cls_field_type)
         case T.TimestampType():
@@ -67,7 +67,7 @@ def convert_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Column:
                 column = F.to_timestamp(column, format=timestamp_format)
             else:
                 logger.warning(
-                    f"No `format` provided for {cls_field.name}. Please add `field(..., metadata={{'format': ...}}) and rerun."
+                    f"No `format` provided for {cls_field.name}. Please add `field(..., metadata={{'format': ...}})` and rerun."
                 )
                 column = column.cast(cls_field_type)
 
