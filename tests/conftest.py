@@ -2,9 +2,11 @@ import datetime
 import tempfile
 
 import pytest
+from attrs import define
 from pyspark.sql import SparkSession
 from pyspark.sql import types as T
 from tidy_tools.dataframe import TidyDataFrame
+from tidy_tools.model import TidyDataModel
 
 
 @pytest.fixture
@@ -63,6 +65,21 @@ def simpsons_data(spark_fixture):  # numpydoc ignore=PR01,YD01
         ),
     )
     yield TidyDataFrame(data)
+
+
+@pytest.fixture
+def simpsons_model():  # numpydoc ignore=PR01,YD01
+    """Sample model for Simpsons dataset."""
+
+    @define(kw_only=True)
+    class SimpsonsModel(TidyDataModel):
+        name: str
+        birth_date: datetime.date
+        original_air_date: datetime.date
+        seasons: int
+        instrument: str  # TODO: handle Optional[str]
+
+    yield SimpsonsModel
 
 
 @pytest.fixture
@@ -165,5 +182,4 @@ def eits_data(spark_fixture):  # numpydoc ignore=PR01,YD01
             ]
         ),
     )
-    # TODO: yield data, TidyDataFrame(data)
     yield data
