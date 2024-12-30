@@ -26,7 +26,7 @@ def convert_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Column:
     """
     if not cls_field.default:
         if not cls_field_exists:
-            column = F.lit(None).alias(cls_field.alias)
+            column = F.lit(None)
         else:
             column = F.col(cls_field.alias)
 
@@ -39,7 +39,7 @@ def convert_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Column:
             assert return_type is Column, "Factory must return a pyspark.sql.Column!"
             column = cls_field.default.factory()
         elif not cls_field_exists:
-            column = F.lit(cls_field.default).alias(cls_field.alias)
+            column = F.lit(cls_field.default)
         else:
             column = F.when(
                 F.col(cls_field.alias).isNull(), cls_field.default
@@ -74,4 +74,4 @@ def convert_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Column:
     if cls_field.converter:
         column = cls_field.converter(column)
 
-    return column
+    return column.alias(cls_field.alias)
