@@ -21,8 +21,8 @@ def convert_field(cls_field: attrs.Attribute, cls_field_exists: bool) -> Column:
 
     Returns
     -------
-    DataFrame
-        Converted DataFrame.
+    Column
+        Constructed PySpark Column expression.
     """
     if not cls_field.default:
         if not cls_field_exists:

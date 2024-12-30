@@ -8,6 +8,7 @@ import attrs
 from attrs import converters
 from attrs import validators
 from loguru import logger
+from tidy_tools.model.model import TidyDataModel
 
 
 def remove_none(*elements: Any) -> Sequence:
@@ -27,7 +28,7 @@ def remove_none(*elements: Any) -> Sequence:
     return [elem for elem in elements if elem is not None]
 
 
-def transform_model(reference) -> Callable:
+def transform_model(reference: TidyDataModel) -> Callable:
     """
     Coerce model according to `reference` model.
 
@@ -42,7 +43,9 @@ def transform_model(reference) -> Callable:
         Field transformer hook compatible with attrs classes.
     """
 
-    def closure(cls, fields: list[attrs.Attribute]) -> list[attrs.Attribute]:
+    def closure(
+        cls: TidyDataModel, fields: list[attrs.Attribute]
+    ) -> list[attrs.Attribute]:
         """
         Create queue of fields to transform.
 

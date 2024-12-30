@@ -15,7 +15,7 @@ def _mapper(validator: Callable) -> Column:
 
     Parameters
     ----------
-    validator : attrs._ValidatorType
+    validator : Callable
         One of attrs built-in validators. See `attrs.validator` for details.
 
     Returns

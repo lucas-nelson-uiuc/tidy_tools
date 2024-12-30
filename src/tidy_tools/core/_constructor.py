@@ -11,7 +11,7 @@ def construct_query(
     predicate: Callable,
     strict: bool = False,
     invert: bool = False,
-    **kwargs,
+    **kwargs: dict,
 ) -> Column:  # numpydoc ignore=PR09
     """
     Factory to generate generic filtering queries.

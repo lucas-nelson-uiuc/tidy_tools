@@ -76,16 +76,72 @@ class ColumnSelector:
             return "ColumnSelector(expression=<uninspectable callable>)"
 
 
-def _name_selector(pattern: str, match_func: Callable):
+def _name_selector(pattern: str, match_func: Callable) -> Callable:
+    """
+    Define Column Selector based on a Struct Field's name property.
+
+    Parameters
+    ----------
+    pattern : str
+        Pattern to search for in name.
+    match_func : Callable
+        Match function to run pattern against.
+
+    Returns
+    -------
+    Callable
+        Closure to filter against a Struct Field.
+    """
+
     def closure(sf: T.StructField) -> bool:
+        """
+        Construct StructField filtering function.
+
+        Parameters
+        ----------
+        sf : T.StructField
+            PySpark StructField, often yielded in DataFrame.schema.
+
+        Returns
+        -------
+        bool
+            Asserts whether field's name matches pattern.
+        """
         closure.__doc__ = f"Matches '{pattern}'"
         return match_func(sf.name, pattern)
 
     return ColumnSelector(expression=closure)
 
 
-def _dtype_selector(dtype: T.DataType | tuple[T.DataType]):
+def _dtype_selector(dtype: T.DataType | tuple[T.DataType]) -> Callable:
+    """
+    Define Column Selector based on a Struct Field's dtype property.
+
+    Parameters
+    ----------
+    dtype : T.DataType | tuple[T.DataType]
+        PySpark data type.
+
+    Returns
+    -------
+    Callable
+        Closure to filter against a Struct Field.
+    """
+
     def closure(sf: T.StructField) -> bool:
+        """
+        Construct StructField filtering function.
+
+        Parameters
+        ----------
+        sf : T.StructField
+            PySpark StructField, often yielded in DataFrame.schema.
+
+        Returns
+        -------
+        bool
+            Asserts whether field's dtype matches pattern.
+        """
         closure.__doc__ = f"Data type {dtype}"
         return isinstance(sf.dataType, dtype)
 
@@ -93,55 +149,183 @@ def _dtype_selector(dtype: T.DataType | tuple[T.DataType]):
 
 
 def string() -> ColumnSelector:
+    """
+    Select all columns with a string dtype.
+
+    Returns
+    -------
+    ColumnSelector
+        Predicate to filter columns.
+    """
     return _dtype_selector(PySparkTypes.STRING.value)
 
 
 def numeric() -> ColumnSelector:
+    """
+    Select all columns with a numeric dtype.
+
+    Returns
+    -------
+    ColumnSelector
+        Predicate to filter columns.
+    """
     return _dtype_selector(PySparkTypes.NUMERIC.value)
 
 
 def temporal() -> ColumnSelector:
+    """
+    Select all columns with a temporal dtype.
+
+    Returns
+    -------
+    ColumnSelector
+        Predicate to filter columns.
+    """
     return _dtype_selector(PySparkTypes.TEMPORAL.value)
 
 
 def date() -> ColumnSelector:
+    """
+    Select all columns with a date dtype.
+
+    Returns
+    -------
+    ColumnSelector
+        Predicate to filter columns.
+    """
     return _dtype_selector(T.DateType)
 
 
 def time() -> ColumnSelector:
+    """
+    Select all columns with a time dtype.
+
+    Returns
+    -------
+    ColumnSelector
+        Predicate to filter columns.
+    """
     return _dtype_selector((T.TimestampType, T.TimestampNTZType))
 
 
 def interval() -> ColumnSelector:
+    """
+    Select all columns with an interval dtype.
+
+    Returns
+    -------
+    ColumnSelector
+        Predicate to filter columns.
+    """
     return _dtype_selector(PySparkTypes.INTERVAL.value)
 
 
 def complex() -> ColumnSelector:
+    """
+    Select all columns with a complex dtype.
+
+    Returns
+    -------
+    ColumnSelector
+        Predicate to filter columns.
+    """
     return _dtype_selector(PySparkTypes.COMPLEX.value)
 
 
-def by_dtype(*dtype: T.DataType):
+def by_dtype(*dtype: T.DataType) -> Callable:
+    """
+    Select all columns with dtype(s).
+
+    Parameters
+    ----------
+    *dtype : T.DataType
+        One or more data types to filter for.
+
+    Returns
+    -------
+    Callable
+        ColumnSelector predicate filtering for `dtype`.
+    """
     return _dtype_selector(dtype)
 
 
 def required() -> ColumnSelector:
+    """
+    Return all non-nullable fields.
+
+    Returns
+    -------
+    ColumnSelector
+        Predicate-based column selecting function.
+    """
+
     def closure(sf: T.StructField) -> bool:
-        """Required fields"""
+        """
+        Construct StructField filtering function.
+
+        Parameters
+        ----------
+        sf : T.StructField
+            PySpark StructField.
+
+        Returns
+        -------
+        bool
+            Asserts whether field is not nullable.
+        """
         return not sf.nullable
 
     return ColumnSelector(expression=closure)
 
 
-def exclude(*names: str) -> ColumnSelector:
+def exclude(*name: str) -> ColumnSelector:
+    """
+    Remove all columns with `name`(s).
+
+    Parameters
+    ----------
+    *name : str
+        Name of column(s) to exclude.
+
+    Returns
+    -------
+    ColumnSelector
+        ColumnSelector predciate filtering for `dtype`.
+    """
+
     def closure(sf: T.StructField) -> bool:
-        """Required fields"""
-        return sf.name not in names
+        """
+        Construct StructField filtering function.
+
+        Parameters
+        ----------
+        sf : T.StructField
+            PySpark StructField.
+
+        Returns
+        -------
+        bool
+            Asserts whether field is not in `name`.
+        """
+        return sf.name not in name
 
     return ColumnSelector(expression=closure)
 
 
-def matches(pattern: str):
-    """Selector capturing column names matching the pattern specified."""
+def matches(pattern: str) -> ColumnSelector:
+    """
+    Selector capturing column names matching the pattern specified.
+
+    Parameters
+    ----------
+    pattern : str
+        Regular expression to match against a column's name.
+
+    Returns
+    -------
+    ColumnSelector
+        Expression filtering for column matching `pattern`.
+    """
     return _name_selector(
         pattern=re.compile(pattern),
         match_func=lambda name, pattern: re.search(
@@ -150,21 +334,69 @@ def matches(pattern: str):
     )
 
 
-def contains(pattern: str):
-    """Selector capturing column names containing the exact pattern specified."""
+def contains(pattern: str) -> ColumnSelector:
+    """
+    Selector capturing column names containing the exact pattern specified.
+
+    Parameters
+    ----------
+    pattern : str
+        Regular expression to match against a column's name.
+
+    Returns
+    -------
+    ColumnSelector
+        Expression filtering for column containing `pattern`.
+    """
     return _name_selector(pattern=pattern, match_func=str.__contains__)
 
 
-def starts_with(pattern: str):
-    """Selector capturing column names starting with the exact pattern specified."""
+def starts_with(pattern: str) -> ColumnSelector:
+    """
+    Selector capturing column names starting with the exact pattern specified.
+
+    Parameters
+    ----------
+    pattern : str
+        Regular expression to match against a column's name.
+
+    Returns
+    -------
+    ColumnSelector
+        Expression filtering for column starting with `pattern`.
+    """
     return _name_selector(pattern=pattern, match_func=str.startswith)
 
 
-def ends_with(pattern: str):
-    """Selector capturing column names ending with the exact pattern specified."""
+def ends_with(pattern: str) -> ColumnSelector:
+    """
+    Selector capturing column names ending with the exact pattern specified.
+
+    Parameters
+    ----------
+    pattern : str
+        Regular expression to match against a column's name.
+
+    Returns
+    -------
+    ColumnSelector
+        Expression filtering for column ending with `pattern`.
+    """
     return _name_selector(pattern=pattern, match_func=str.endswith)
 
 
-def by_name(*name: str):
-    """Selector capturing column(s) by name"""
+def by_name(*name: str) -> ColumnSelector:
+    """
+    Selector capturing column(s) by name.
+
+    Parameters
+    ----------
+    *name : str
+        Name of column(s) to select.
+
+    Returns
+    -------
+    ColumnSelector
+        Expression filtering for columns with `name`.
+    """
     return matches(pattern=rf"^({'|'.join(name)})$")

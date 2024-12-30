@@ -153,6 +153,13 @@ def filter_range(
     -------
     DataFrame
         Observations that exist within range across all column(s).
+
+    Raises
+    ------
+    AssertionError
+        Raises error if either condition is not met:
+            - `lower_bound` is not same type as `upper_bound`
+            - `lower_bound` is greater than or equal to `upper_bound`.
     """
     try:
         lower_bound, upper_bound = boundaries

@@ -107,7 +107,7 @@ class TidyDataModel:
         return process(data)  # TODO: add option to use TidyDataFrame
 
     @classmethod
-    def convert(cls, data: DataFrame):
+    def convert(cls, data: DataFrame) -> DataFrame:
         """
         Apply conversion functions to supported fields.
 

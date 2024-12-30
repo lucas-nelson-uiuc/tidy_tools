@@ -29,6 +29,11 @@ def read(
     -------
     DataFrame
         Object containing data from all source(s) provided.
+
+    Raises
+    ------
+    PySparkException
+        If reading source(s) cannot be performed successfully.
     """
 
     read_func = functools.partial(read_func, **read_options)

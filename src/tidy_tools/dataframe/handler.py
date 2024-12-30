@@ -40,26 +40,7 @@ class TidyLogHandler:
 
 @define(kw_only=True)
 class TidyFileHandler(TidyLogHandler):
-    """
-    Log handler for file streams.
-
-    Attributes
-    ----------
-    sink : str | Path | TextIO
-        Destination for receiving logging messages.
-    level : str
-        Minimum level to trace in logs. See `loguru` for more details.
-    format : str
-        Template used for logged messages.
-    diagnose : bool
-        Whether the exception trace should display the variables values
-        to eases the debugging.
-    catch : bool
-        Whether errors occurring while sink handles logs messages should
-        be automatically caught. If True, an exception message is displayed
-        on sys.stderr but the exception is not propagated to the caller,
-        preventing your app to crash.
-    """
+    """Log handler for file streams."""
 
     def __attrs_post_init__(self):
         self.sink = Path(self.sink).resolve()
@@ -77,20 +58,6 @@ class TidyMemoHandler(TidyFileHandler):
 
     Attributes
     ----------
-    sink : str | Path | TextIO
-        Destination for receiving logging messages.
-    level : str
-        Minimum level to trace in logs. See `loguru` for more details.
-    format : str
-        Template used for logged messages.
-    diagnose : bool
-        Whether the exception trace should display the variables values
-        to eases the debugging.
-    catch : bool
-        Whether errors occurring while sink handles logs messages should
-        be automatically caught. If True, an exception message is displayed
-        on sys.stderr but the exception is not propagated to the caller,
-        preventing your app to crash.
     serialize : bool
         Whether the logged message and its records should be first converted
         to a JSON string before being sent to the sink.

@@ -34,12 +34,12 @@ class TidyDataFrame:
     ----------
     _data : DataFrame
         PySpark DataFrame object to perform tidy operations.
-    _context : dict, optional
-        Context to control execution of TidyDataFrame.
+    _context : TidyContext | None
+        Context to control execution of TidyDataFrame. See `TidyContext` for more.
     """
 
     _data: DataFrame = field(validator=validators.instance_of((DataFrame, GroupedData)))
-    _context: Optional[dict] = field(factory=TidyContext)
+    _context: TidyContext | None = field(factory=TidyContext)
 
     def __attrs_post_init__(self):
         if self._context.log_handlers:
@@ -87,6 +87,11 @@ class TidyDataFrame:
         -------
         None
             No output returned since message is logged to handler(s).
+
+        Raises
+        ------
+        ValueError
+            If logging level is not handled by loguru.
         """
         if not hasattr(logger, level):
             raise ValueError(
@@ -117,9 +122,9 @@ class TidyDataFrame:
     def load(
         cls,
         *source: str | Path,
-        context: Optional[TidyContext] = None,
-        read_func: Optional[Callable] = None,
-        read_options: Optional[dict] = dict(),
+        context: TidyContext | None = None,
+        read_func: Callable | None = None,
+        read_options: dict | None = dict(),
     ) -> "TidyDataFrame":
         """
         Create TidyDataFrame directly from source(s).
@@ -128,11 +133,11 @@ class TidyDataFrame:
         ----------
         *source : str | Path
             Arbitrary number of file references containing data.
-        context : TidyContext, optional
+        context : TidyContext | None
             Additional context parameters to pass.
-        read_func : Callable, optional
+        read_func : Callable | None
             Function for reading data from source(s).
-        read_options : dict, optional
+        read_options : dict | None
             Additional parameters to pass to `read_func`.
 
         Returns
@@ -140,6 +145,11 @@ class TidyDataFrame:
         TidyDataFrame
             Instance of TidyDataFrame loaded from source(s) with additional
             parameters instructing read-in and/or context.
+
+        Raises
+        ------
+        PySparkException
+            If `reader.read` cannot load data from source(s).
 
         Examples
         --------
@@ -205,7 +215,7 @@ class TidyDataFrame:
     def isEmpty(self):
         return self.is_empty()
 
-    def display(self, limit: Optional[int] = None) -> None:
+    def display(self, limit: int | None = None) -> None:
         """
         Control execution of display method.
 
@@ -218,7 +228,7 @@ class TidyDataFrame:
 
         Parameters
         ----------
-        limit : int
+        limit : int | None
             Number of rows to display to console. If context is provided, the limit provided
             will be used.
 
@@ -235,7 +245,7 @@ class TidyDataFrame:
             self._data.limit(limit or self._context.limit).display()
         return self
 
-    def show(self, limit: Optional[int] = None):
+    def show(self, limit: int | None = None) -> None:
         """
         Control execution of display method.
 
@@ -248,7 +258,7 @@ class TidyDataFrame:
 
         Parameters
         ----------
-        limit : int
+        limit : int | None
             Number of rows to display to console. If context is provided, the limit provided
             will be used.
 
@@ -265,13 +275,13 @@ class TidyDataFrame:
             self._data.limit(limit or self._context.limit).show()
         return self
 
-    def count(self, result: Optional[DataFrame] = None) -> int:
+    def count(self, result: DataFrame | None = None) -> int:
         """
         Return number of rows in DataFrame.
 
         Parameters
         ----------
-        result : DataFrame, optional
+        result : DataFrame | None
             If provided, this will trigger a count operation. Else, the count will reference
             the last count or zero if context disables count.
 
@@ -359,7 +369,9 @@ class TidyDataFrame:
             self,
         )
 
-    def transform(self, func: Callable, *args, **kwargs) -> "TidyDataFrame":
+    def transform(
+        self, func: Callable, *args: tuple, **kwargs: dict
+    ) -> "TidyDataFrame":
         """
         Concise syntax for chaining custom transformations together.
 

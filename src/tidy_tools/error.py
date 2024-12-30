@@ -9,7 +9,7 @@ class TidyError:
     """
     Class for handling errors in TidyDataFrame.
 
-    Parameters
+    Attributes
     ----------
     column : str
         Column to perform check on.
