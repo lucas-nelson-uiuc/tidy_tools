@@ -5,9 +5,7 @@ from typing import TextIO
 from attrs import define
 from attrs import field
 from loguru import logger
-
-
-LOG_FORMAT: str = "{time:HH:mm:ss} | <level>{level:<8}</level> | {message}"
+from tidy_tools.parser import LOG_FORMAT
 
 
 @define

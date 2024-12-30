@@ -1,6 +1,7 @@
 import sys
 
 from loguru import logger
+from tidy_tools.parser import LOG_FORMAT
 
 
 __version__ = "0.3.2"
@@ -10,7 +11,6 @@ __version__ = "0.3.2"
 #   - remove existing logger
 #   - update logging format
 #   - log welcome message for documentation
-LOG_FORMAT: str = "{time:HH:mm:ss} | <level>{level:<8}</level> | {message}"
 logger.remove()
 logger.add(sys.stderr, format=LOG_FORMAT)
 logger.info(
