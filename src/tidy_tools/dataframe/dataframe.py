@@ -118,6 +118,16 @@ class TidyDataFrame:
 
         return decorator
 
+    def comment(self, message: str) -> None:  # numpydoc ignore=PR01,RT01
+        """Log message to console to persist comments in logs."""
+        self._log(operation="comment", message=message)
+        return self
+
+    def document(self, message: str) -> None:  # numpydoc ignore=PR01,RT01
+        """Log message to console for documentation purposes."""
+        self._log(operation="document", message=message)
+        return self
+
     @classmethod
     def load(
         cls,
